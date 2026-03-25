@@ -6,6 +6,15 @@ import { SUPPORTED_LANGUAGES, getLangName } from '@/lib/deepl';
 import { saveTranslation, saveCard } from '@/lib/storage';
 import { createNewCard } from '@/lib/spaced-repetition';
 import type { Translation } from '@/types';
+import { pinyin } from 'pinyin-pro';
+
+function generatePinyin(text: string): string {
+  return pinyin(text, { toneType: 'symbol', separator: ' ' });
+}
+
+function isChinese(langCode: string): boolean {
+  return langCode === 'ZH-HANT' || langCode === 'ZH' || langCode === 'ZH-HANS';
+}
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -208,6 +217,11 @@ export default function TranslateForm() {
           </div>
           <div className="px-4 py-4">
             <p className="text-base leading-relaxed whitespace-pre-wrap text-gray-900">{result.translatedText}</p>
+            {isChinese(result.targetLang) && (
+              <p className="mt-2 text-sm text-blue-500 leading-relaxed whitespace-pre-wrap">
+                {generatePinyin(result.translatedText)}
+              </p>
+            )}
           </div>
         </div>
       )}

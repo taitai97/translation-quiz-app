@@ -27,7 +27,8 @@ export async function translateText(
 export const SUPPORTED_LANGUAGES = [
   { code: 'JA', name: '日本語' },
   { code: 'EN', name: 'English' },
-  { code: 'ZH', name: '中文' },
+  { code: 'ZH', name: '中文（簡体）' },
+  { code: 'ZH-HANT', name: '繁體中文（台湾）' },
   { code: 'KO', name: '한국어' },
   { code: 'FR', name: 'Français' },
   { code: 'DE', name: 'Deutsch' },

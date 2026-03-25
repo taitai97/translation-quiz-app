@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import type { CardItem, Rating } from '@/types';
 import { getLangName } from '@/lib/deepl';
+import { pinyin } from 'pinyin-pro';
+
+function isChinese(langCode: string): boolean {
+  return langCode === 'ZH-HANT' || langCode === 'ZH' || langCode === 'ZH-HANS';
+}
 
 interface FlashCardProps {
   card: CardItem;
@@ -72,6 +77,11 @@ export default function FlashCard({ card, onRate, remaining }: FlashCardProps) {
             <p className="text-xl font-semibold text-center text-blue-800 leading-snug">
               {card.translatedText}
             </p>
+            {isChinese(card.targetLang) && (
+              <p className="mt-2 text-sm text-blue-400 text-center leading-relaxed">
+                {pinyin(card.translatedText, { toneType: 'symbol', separator: ' ' })}
+              </p>
+            )}
           </div>
         </div>
       </div>
