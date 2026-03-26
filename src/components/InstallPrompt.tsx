@@ -64,9 +64,12 @@ export default function InstallPrompt() {
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* ヘッダー */}
           <div className="bg-blue-600 px-5 py-4 flex items-start justify-between">
-            <div>
-              <p className="text-white font-bold text-base">ホーム画面に追加する</p>
-              <p className="text-blue-100 text-xs mt-0.5">アプリとして快適に使えます</p>
+            <div className="flex items-center gap-3">
+              <img src="/icon-192.png" alt="Translingo" className="w-10 h-10 rounded-xl shadow" />
+              <div>
+                <p className="text-white font-bold text-base">Translingo</p>
+                <p className="text-blue-100 text-xs mt-0.5">ホーム画面に追加する</p>
+              </div>
             </div>
             <button onClick={handleDismiss} className="text-blue-200 hover:text-white mt-0.5">
               <X size={20} />
