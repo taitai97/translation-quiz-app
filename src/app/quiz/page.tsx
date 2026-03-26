@@ -84,6 +84,7 @@ function CompletionModal({ onRestart }: { onRestart: () => void }) {
 
 export default function QuizPage() {
   const [queue, setQueue] = useState<CardItem[]>([]);
+  const [sessionTotal, setSessionTotal] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
@@ -91,6 +92,7 @@ export default function QuizPage() {
   const load = useCallback(async () => {
     const cards = await getCards();
     setQueue(sortByDue(cards));
+    setSessionTotal(cards.length);
     setIsLoaded(true);
   }, []);
 
@@ -145,6 +147,7 @@ export default function QuizPage() {
   const handleRestart = useCallback(async () => {
     const all = await getCards();
     setQueue(sortByDue(all));
+    setSessionTotal(all.length);
     setShowCompletion(false);
   }, []);
 
@@ -173,7 +176,8 @@ export default function QuizPage() {
   }
 
   const currentCard = queue[0];
-  const dueCount = queue.filter(c => c.nextReviewAt <= Date.now()).length;
+  const answered = sessionTotal - queue.length;
+  const progress = sessionTotal > 0 ? (answered / sessionTotal) * 100 : 0;
 
   return (
     <div>
@@ -191,8 +195,7 @@ export default function QuizPage() {
           </button>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-blue-600">{dueCount} 枚 復習中</p>
-          <p className="text-xs text-gray-400">全 {queue.length} 枚</p>
+          <p className="text-sm font-medium text-blue-600">{answered} / {sessionTotal} 枚</p>
         </div>
       </div>
 
@@ -200,7 +203,7 @@ export default function QuizPage() {
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-8">
         <div
           className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-          style={{ width: dueCount > 0 ? `${((queue.length - dueCount) / queue.length) * 100}%` : '100%' }}
+          style={{ width: `${progress}%` }}
         />
       </div>
 
