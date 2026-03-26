@@ -112,6 +112,13 @@ export default function SettingsPage() {
           お問い合わせ
         </Link>
 
+        {/* リンク */}
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+          <Link href="/terms" className="hover:text-gray-600">利用規約</Link>
+          <span>·</span>
+          <Link href="/privacy" className="hover:text-gray-600">プライバシーポリシー</Link>
+        </div>
+
         {/* アプリ情報 */}
         <div className="text-center text-xs text-gray-400 mt-2">
           <p>Translingo v1.0.0</p>
