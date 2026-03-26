@@ -201,7 +201,7 @@ export default function QuizPage() {
         key={currentCard.id}
         card={currentCard}
         onRate={handleRate}
-        remaining={queue.length - 1}
+        remaining={queue.length}
       />
     </div>
   );
