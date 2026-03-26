@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ArrowLeftRight, Copy, Check, Loader2, Mic, MicOff, Tag, Volume2, VolumeX } from 'lucide-react';
 import { SUPPORTED_LANGUAGES, getLangName } from '@/lib/deepl';
 import { saveTranslation, saveCard } from '@/lib/storage';
@@ -37,18 +37,13 @@ function toLang(code: string): string {
 
 export default function TranslateForm() {
   const [sourceText, setSourceText] = useState('');
-  const [sourceLang, setSourceLang] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('default_source_lang') ?? 'JA';
-    }
-    return 'AUTO';
-  });
-  const [targetLang, setTargetLang] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('default_target_lang') ?? 'EN';
-    }
-    return 'JA';
-  });
+  const [sourceLang, setSourceLang] = useState('JA');
+  const [targetLang, setTargetLang] = useState('EN');
+
+  useEffect(() => {
+    setSourceLang(localStorage.getItem('default_source_lang') ?? 'JA');
+    setTargetLang(localStorage.getItem('default_target_lang') ?? 'EN');
+  }, []);
   const [result, setResult] = useState<Translation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
