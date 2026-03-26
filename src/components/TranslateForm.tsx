@@ -157,12 +157,30 @@ export default function TranslateForm() {
       const transcript = e.results[0][0].transcript;
       setSourceText(prev => prev ? `${prev} ${transcript}` : transcript);
     };
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (e: any) => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (e.error === 'not-allowed') {
+        setError('マイクのアクセスが拒否されています。ブラウザの設定でマイクを許可してください。');
+      } else if (e.error === 'no-speech') {
+        setError('音声が検出されませんでした。もう一度お試しください。');
+      } else {
+        setError(`音声認識エラー: ${e.error}`);
+      }
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      recognitionRef.current = null;
+      setError('音声認識を開始できませんでした。');
+    }
   }, [isListening, sourceLang]);
 
   return (
