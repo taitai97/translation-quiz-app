@@ -1,19 +1,11 @@
-const CACHE_NAME = 'translation-quiz-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/history',
-  '/quiz',
-  '/settings',
-];
+const CACHE_NAME = 'translation-quiz-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  // 古いキャッシュを全削除
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
@@ -23,22 +15,38 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // APIリクエストはキャッシュしない
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+
+  // APIはキャッシュしない（常にネットワーク）
+  if (url.pathname.startsWith('/api/')) return;
+
+  // Next.jsの静的アセット（/_next/static/）はハッシュ付きなのでキャッシュ優先
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
+          return response;
+        });
+      })
+    );
     return;
   }
 
+  // HTMLページ・その他はネットワーク優先（最新を取得、失敗時だけキャッシュ）
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         }
-        const cloned = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         return response;
-      }).catch(() => caches.match('/'));
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
