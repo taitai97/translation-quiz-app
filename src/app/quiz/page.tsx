@@ -67,6 +67,7 @@ function CompletionModal({ onRestart }: { onRestart: () => void }) {
         <div className="text-6xl">🎉</div>
         <h2 className="text-xl font-bold text-gray-800">全てのカードを覚えました！</h2>
         <p className="text-sm text-gray-500">もう一度最初から復習しますか？</p>
+        <p className="text-xs text-gray-400 leading-relaxed">完全に覚えたカードは学習リストから削除するとクイズに出てこなくなります。</p>
         <button
           onClick={onRestart}
           className="mt-2 w-full bg-blue-600 text-white rounded-xl py-3 font-medium hover:bg-blue-700"
