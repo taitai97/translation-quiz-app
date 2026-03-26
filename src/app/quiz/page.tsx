@@ -64,10 +64,29 @@ function RulesModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+function CompletionModal({ onRestart }: { onRestart: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+        <div className="text-6xl">🎉</div>
+        <h2 className="text-xl font-bold text-gray-800">全てのカードを覚えました！</h2>
+        <p className="text-sm text-gray-500">もう一度最初から復習しますか？</p>
+        <button
+          onClick={onRestart}
+          className="mt-2 w-full bg-blue-600 text-white rounded-xl py-3 font-medium hover:bg-blue-700"
+        >
+          もう一度復習する
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function QuizPage() {
   const [queue, setQueue] = useState<CardItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   const load = useCallback(async () => {
     const cards = await getCards();
@@ -111,11 +130,9 @@ export default function QuizPage() {
         ];
       }
 
-      // good / easy: キューから除外。空になったら全カード再ロード
+      // good / easy: キューから除外。空になったら完了ポップアップ
       if (rest.length === 0) {
-        getCards().then(all => {
-          setQueue(sortByDue(all));
-        });
+        setShowCompletion(true);
         return [];
       }
       return rest;
@@ -130,6 +147,12 @@ export default function QuizPage() {
       reviewedAt: Date.now(),
     });
   }, [queue]);
+
+  const handleRestart = useCallback(async () => {
+    const all = await getCards();
+    setQueue(sortByDue(all));
+    setShowCompletion(false);
+  }, []);
 
   if (!isLoaded) {
     return (
@@ -157,6 +180,7 @@ export default function QuizPage() {
   return (
     <div>
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+      {showCompletion && <CompletionModal onRestart={handleRestart} />}
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
