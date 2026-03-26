@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepL APIキー取得ガイド | 翻訳クイズ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+      background: #f0f4ff;
+      color: #1e293b;
+      line-height: 1.7;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      text-align: center;
+      padding: 60px 24px 48px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .hero h1 { font-size: clamp(24px, 5vw, 36px); font-weight: 800; margin-bottom: 12px; }
+    .hero p { font-size: 16px; opacity: 0.85; max-width: 480px; margin: 0 auto 24px; }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .hero-meta .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+
+    /* ── Container ── */
+    .container { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── Steps ── */
+    .steps { padding: 48px 0 64px; }
+    .steps-header { text-align: center; margin-bottom: 40px; }
+    .steps-header h2 { font-size: 22px; font-weight: 700; color: #1e293b; }
+    .steps-header p { color: #64748b; margin-top: 6px; font-size: 15px; }
+
+    .step {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .step-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .step-num {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: white;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title { font-size: 18px; font-weight: 700; color: #1e293b; }
+    .step-desc { color: #475569; font-size: 14px; margin-top: 4px; }
+
+    /* ── Mockups ── */
+    .mockup-browser {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .mockup-bar {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot-r { width:10px; height:10px; border-radius:50%; background:#f87171; }
+    .dot-y { width:10px; height:10px; border-radius:50%; background:#fbbf24; }
+    .dot-g { width:10px; height:10px; border-radius:50%; background:#4ade80; }
+    .url-bar {
+      flex: 1;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .mockup-body { padding: 20px; background: white; }
+
+    /* DeepL signup mockup */
+    .deepl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0 16px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 20px;
+    }
+    .deepl-logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f9d72;
+      letter-spacing: -0.5px;
+    }
+    .deepl-nav { display: flex; gap: 12px; }
+    .deepl-nav a {
+      font-size: 13px;
+      color: #475569;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    .deepl-nav a.active {
+      background: #0f9d72;
+      color: white;
+      font-weight: 600;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
+    .form-input {
+      width: 100%;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+    .form-input.filled { background: white; border-color: #0f9d72; }
+    .btn-deepl {
+      width: 100%;
+      background: #0f9d72;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* Plan selection mockup */
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .plan-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+    }
+    .plan-card.selected { border-color: #0f9d72; background: #f0fdf9; }
+    .plan-badge {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f9d72;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .plan-name { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .plan-price { font-size: 20px; font-weight: 800; color: #0f9d72; }
+    .plan-price span { font-size: 12px; font-weight: 400; color: #64748b; }
+    .plan-limit { font-size: 11px; color: #64748b; margin-top: 4px; }
+    .check { color: #0f9d72; font-weight: 700; }
+
+    /* API Key page mockup */
+    .api-key-section { margin-top: 12px; }
+    .api-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .api-key-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .api-key-text {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #1e293b;
+      word-break: break-all;
+    }
+    .api-key-mask {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #64748b;
+      letter-spacing: 2px;
+    }
+    .btn-copy {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .highlight-arrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fef9c3;
+      border: 1.5px solid #fde047;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #854d0e;
+      font-weight: 600;
+    }
+
+    /* App settings mockup */
+    .app-mockup {
+      background: #f0f4ff;
+      border-radius: 28px;
+      padding: 16px;
+      max-width: 320px;
+      margin: 0 auto;
+      border: 6px solid #1e293b;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .app-status-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #475569;
+      padding: 0 4px 10px;
+      font-weight: 600;
+    }
+    .app-screen {
+      background: white;
+      border-radius: 20px;
+      padding: 20px 16px 16px;
+      min-height: 360px;
+    }
+    .app-title { font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 16px; }
+    .setting-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .setting-label { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .setting-hint { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+    .setting-input-wrap { position: relative; }
+    .setting-input {
+      width: 100%;
+      border: 1.5px solid #0f9d72;
+      border-radius: 8px;
+      padding: 9px 36px 9px 10px;
+      font-size: 12px;
+      font-family: monospace;
+      color: #1e293b;
+      background: #f0fdf9;
+    }
+    .setting-eye {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .btn-save {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .success-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #16a34a;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    /* ── Info box ── */
+    .info-box {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #1e40af;
+    }
+    .info-box strong { display: block; margin-bottom: 6px; }
+
+    .warn-box {
+      background: #fff7ed;
+      border: 1.5px solid #fed7aa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #9a3412;
+    }
+
+    /* ── Footer CTA ── */
+    .cta {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: white;
+      text-align: center;
+      padding: 48px 24px;
+    }
+    .cta h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+    .cta p { opacity: 0.85; margin-bottom: 24px; font-size: 15px; }
+    .cta-btn {
+      display: inline-block;
+      background: white;
+      color: #2563eb;
+      font-weight: 800;
+      font-size: 16px;
+      padding: 14px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    /* ── Misc ── */
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .step-note {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 3px solid #94a3b8;
+    }
+
+    @media (max-width: 480px) {
+      .plan-grid { grid-template-columns: 1fr; }
+      .deepl-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">📖 初心者向けガイド</div>
+  <h1>DeepL APIキーの<br>取得方法</h1>
+  <p>月50万文字まで完全無料。クレジットカード不要で今すぐ始められます。</p>
+  <div class="hero-meta">
+    <span><span class="dot"></span> 無料枠あり（50万字/月）</span>
+    <span><span class="dot"></span> 約5分で完了</span>
+    <span><span class="dot"></span> カード登録不要</span>
+  </div>
+</div>
+
+<!-- Steps -->
+<div class="steps">
+  <div class="container">
+    <div class="steps-header">
+      <h2>4ステップで取得完了</h2>
+      <p>DeepLのアカウント作成からアプリへの設定まで、画像付きで解説します</p>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">DeepL公式サイトにアクセス</div>
+          <div class="step-desc">ブラウザで以下のURLを開いてください</div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>🔗 アクセス先URL</strong>
+        <code style="font-size:15px; font-weight:700; letter-spacing:0.02em;">www.deepl.com/ja/pro-api</code>
+      </div>
+
+      <div class="mockup-browser" style="margin-top:16px;">
+        <div class="mockup-bar">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="url-bar">🔒 www.deepl.com/ja/pro-api</div>
+        </div>
+        <div class="mockup-body">
+          <div style="text-align:center; padding: 20px 0 10px;">
+            <div style="font-size:28px; font-weight:900; color:#0f9d72; letter-spacing:-1px;">DeepL</div>
+            <div style="font-size:11px; color:#94a3b8; margin-top:2px;">for Developers</div>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;">
+            <div style="border:2px solid #e2e8f0; border-radius:12px; padding:14px 18px; text-align:center; min-width:120px;">
+              <div style="font-size:13px; font-weight:700; color:#1e293b;">DeepL API Free</div>
+              <div style="font-size:20px; font-weight:900; color:#0f9d72; margin:6px 0;">¥0</div>
+              <div style="font-size:11px; color:#64748b;">月50万文字まで</div>
+              <div style="font-size:11px; color:#64748b;">カード不要</div>
+            </div>
+            <div style="border:2px solid #0f9d72; border-radius:12px; padding:14px 18px; text-align:center; min-width:120px; background:#f0fdf9; opacity:0.5;">
+              <div style="font-size:13px; font-weight:700; color:#1e293b;">DeepL API Pro</div>
+              <div style="font-size:20px; font-weight:900; color:#0f9d72; margin:6px 0;">有料</div>
+              <div style="font-size:11px; color:#64748b;">無制限</div>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <div style="display:inline-block; background:#0f9d72; color:white; padding:10px 24px; border-radius:8px; font-weight:700; font-size:14px;">DeepL API Freeを始める</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-note">💡 「DeepL API Free」を選びましょう。個人利用なら月50万文字で十分です。</div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">アカウントを作成する</div>
+          <div class="step-desc">メールアドレスとパスワードを入力するだけ。カード登録不要です。</div>
+        </div>
+      </div>
+
+      <div class="mockup-browser">
+        <div class="mockup-bar">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="url-bar">🔒 deepl.com/ja/account/summary</div>
+        </div>
+        <div class="mockup-body">
+          <div class="deepl-header">
+            <div class="deepl-logo">DeepL</div>
+            <div class="deepl-nav">
+              <a href="#">ログイン</a>
+              <a href="#" class="active">新規登録</a>
+            </div>
+          </div>
+          <div style="font-size:16px; font-weight:700; color:#1e293b; margin-bottom:16px;">アカウントを作成</div>
+          <div class="form-group">
+            <label class="form-label">メールアドレス</label>
+            <div class="form-input filled">your@email.com</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">パスワード</label>
+            <div class="form-input filled">••••••••••</div>
+          </div>
+          <button class="btn-deepl">無料で始める →</button>
+          <div style="font-size:11px; color:#94a3b8; text-align:center; margin-top:10px;">クレジットカードは不要です</div>
+        </div>
+      </div>
+
+      <div class="warn-box">
+        ⚠️ 登録後にメール認証が届きます。メール内のリンクをクリックしてから次のステップへ進んでください。
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">APIキーをコピーする</div>
+          <div class="step-desc">ログイン後、アカウントページでAPIキーを確認できます</div>
+        </div>
+      </div>
+
+      <div class="mockup-browser">
+        <div class="mockup-bar">
+          <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+          <div class="url-bar">🔒 deepl.com/ja/account/summary</div>
+        </div>
+        <div class="mockup-body">
+          <div class="deepl-header">
+            <div class="deepl-logo">DeepL</div>
+            <div class="deepl-nav">
+              <a href="#" class="active">アカウント</a>
+              <a href="#">ご利用状況</a>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:16px; margin-bottom:16px; font-size:13px; color:#64748b; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
+            <span style="color:#0f9d72; font-weight:700; border-bottom:2px solid #0f9d72; padding-bottom:12px; margin-bottom:-13px;">概要</span>
+            <span>プラン</span>
+            <span>APIキー</span>
+          </div>
+
+          <div class="api-key-section">
+            <div class="api-section-title">🔑 認証キー</div>
+            <div class="api-key-box">
+              <div>
+                <div style="font-size:11px; color:#94a3b8; margin-bottom:4px;">API Free</div>
+                <div class="api-key-mask">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx</div>
+              </div>
+              <button class="btn-copy">📋 コピー</button>
+            </div>
+            <div class="highlight-arrow">
+              👆 ここの「コピー」ボタンを押してAPIキーをコピーしてください
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>📌 ページの探し方</strong>
+        ログイン後 → 右上のアイコン → 「アカウント」 → 「認証キー」セクション<br>
+        または直接 <code>deepl.com/ja/account/summary</code> にアクセス
+      </div>
+
+      <div class="step-note">
+        💡 キーの末尾が <strong>:fx</strong> で終わっているのが無料版の目印です（例：<code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx</code>）
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">アプリの設定画面に貼り付ける</div>
+          <div class="step-desc">翻訳クイズアプリの「設定」タブでAPIキーを保存します</div>
+        </div>
+      </div>
+
+      <div class="app-mockup">
+        <div class="app-status-bar">
+          <span>9:41</span>
+          <span>▶ ◼ ◼</span>
+        </div>
+        <div class="app-screen">
+          <div class="app-title">⚙️ 設定</div>
+
+          <div class="setting-card">
+            <div class="setting-label">🔑 DeepL APIキー</div>
+            <div class="setting-hint">コピーしたAPIキーをここに貼り付けてください</div>
+            <div class="setting-input-wrap">
+              <input class="setting-input" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxx:fx" readonly />
+              <span class="setting-eye">👁</span>
+            </div>
+          </div>
+
+          <button class="btn-save">💾 保存する</button>
+
+          <div class="success-badge">
+            ✅ 保存しました！これで本物の翻訳が使えます
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box" style="margin-top:20px;">
+        <strong>📍 設定画面の開き方</strong>
+        アプリ下部のナビゲーション → ⚙️「設定」タブ → 「DeepL APIキー」欄に貼り付け → 「保存する」
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="step" style="background:linear-gradient(135deg,#f0fdf4,#eff6ff);">
+      <div class="step-header">
+        <div class="step-num" style="background:#0f9d72;">?</div>
+        <div>
+          <div class="step-title">よくある質問</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <div style="font-weight:700; font-size:14px; color:#1e293b; margin-bottom:4px;">Q. 本当に無料ですか？</div>
+          <div style="font-size:14px; color:#475569;">はい。月50万文字まで完全無料です。日常的な翻訳であれば無料枠で十分です。超過した場合は翻訳が停止するだけで、自動課金はされません。</div>
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:14px; color:#1e293b; margin-bottom:4px;">Q. クレジットカードは必要ですか？</div>
+          <div style="font-size:14px; color:#475569;">Free（無料）プランはカード登録不要です。メールアドレスとパスワードだけで使えます。</div>
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:14px; color:#1e293b; margin-bottom:4px;">Q. APIキーは安全ですか？</div>
+          <div style="font-size:14px; color:#475569;">このアプリはAPIキーをあなたのデバイス（ブラウザ）にのみ保存します。サーバーには送信されません。他の人と共有しなければ問題ありません。</div>
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:14px; color:#1e293b; margin-bottom:4px;">Q. APIキーが見つからない場合は？</div>
+          <div style="font-size:14px; color:#475569;">DeepLにログイン → 右上のアカウントアイコン → 「アカウント」→「認証キー」の順に進んでください。</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+  <h2>準備ができたら<br>翻訳を始めましょう！</h2>
+  <p>APIキーを設定すると、DeepLの高精度翻訳がすぐに使えます</p>
+  <a href="/" class="cta-btn">アプリに戻る →</a>
+</div>
+
+</body>
+</html>

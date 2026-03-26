@@ -37,10 +37,17 @@ export default function SettingsPage() {
         {/* DeepL APIキー */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="font-semibold text-gray-700 mb-1">DeepL APIキー</h2>
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-gray-500 mb-2">
             DeepL Free APIキーを入力してください（月50万字まで無料）。
             未入力の場合はモック翻訳が使われます。
           </p>
+          <a
+            href="/deepl-guide.html"
+            target="_blank"
+            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mb-3"
+          >
+            📖 APIキーの取得方法を見る →
+          </a>
           <div className="relative">
             <input
               type={showKey ? 'text' : 'password'}
