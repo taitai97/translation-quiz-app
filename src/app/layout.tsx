@@ -4,6 +4,7 @@ import "./globals.css";
 import NavigationWrapper from "@/components/NavigationWrapper";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import InstallPrompt from "@/components/InstallPrompt";
+import OfflineBanner from "@/components/OfflineBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegistrar />
         <InstallPrompt />
+        <OfflineBanner />
         <div className="min-h-screen bg-gray-50 pb-nav-safe">
           <main className="max-w-lg mx-auto px-4 pt-6">
             {children}

@@ -1,6 +1,22 @@
 import { createClient } from './supabase';
 import type { Translation, CardItem, StudyRecord } from '@/types';
 
+const CACHE_KEYS = {
+  translations: 'cache_translations',
+  cards: 'cache_cards',
+};
+
+function saveCache<T>(key: string, data: T) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+
+function loadCache<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 async function getUserId(): Promise<string> {
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
@@ -26,14 +42,20 @@ export async function saveTranslation(translation: Translation): Promise<void> {
 }
 
 export async function getTranslations(): Promise<Translation[]> {
-  const supabase = createClient();
-  const userId = await getUserId();
-  const { data } = await supabase
-    .from('translations')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  return (data ?? []).map(rowToTranslation);
+  try {
+    const supabase = createClient();
+    const userId = await getUserId();
+    const { data } = await supabase
+      .from('translations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    const result = (data ?? []).map(rowToTranslation);
+    saveCache(CACHE_KEYS.translations, result);
+    return result;
+  } catch {
+    return loadCache<Translation[]>(CACHE_KEYS.translations) ?? [];
+  }
 }
 
 export async function updateTranslationStudyList(id: string, inStudyList: boolean): Promise<void> {
@@ -75,13 +97,19 @@ export async function saveCard(card: CardItem): Promise<void> {
 }
 
 export async function getCards(): Promise<CardItem[]> {
-  const supabase = createClient();
-  const userId = await getUserId();
-  const { data } = await supabase
-    .from('cards')
-    .select('*')
-    .eq('user_id', userId);
-  return (data ?? []).map(rowToCard);
+  try {
+    const supabase = createClient();
+    const userId = await getUserId();
+    const { data } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('user_id', userId);
+    const result = (data ?? []).map(rowToCard);
+    saveCache(CACHE_KEYS.cards, result);
+    return result;
+  } catch {
+    return loadCache<CardItem[]>(CACHE_KEYS.cards) ?? [];
+  }
 }
 
 export async function getDueCards(): Promise<CardItem[]> {
