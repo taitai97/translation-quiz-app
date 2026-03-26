@@ -79,6 +79,12 @@ export default function QuizPage() {
     load();
   }, [load]);
 
+  // クイズ画面ではスクロールを無効化
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const handleRate = useCallback(async (rating: Rating) => {
     const card = queue[0];
     if (!card) return;
