@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, FileText, CreditCard, BookOpen, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Users, FileText, CreditCard, BookOpen, TrendingUp, ArrowLeft, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 interface UserRow {
@@ -15,6 +15,15 @@ interface UserRow {
   lastSessionAt: number | null;
 }
 
+interface ContactMessage {
+  id: string;
+  email: string;
+  category: string;
+  message: string;
+  created_at: number;
+  is_read: boolean;
+}
+
 interface Stats {
   users: { total: number; thisWeek: number; byProvider: Record<string, number> };
   translations: { total: number; thisWeek: number };
@@ -22,6 +31,7 @@ interface Stats {
   sessions: { total: number };
   dailyActiveUsers: { date: string; count: number }[];
   userList: UserRow[];
+  contactMessages: ContactMessage[];
 }
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
@@ -160,6 +170,30 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* お問い合わせ一覧 */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 overflow-hidden">
+        <div className="flex items-center gap-2 text-gray-500 text-xs p-4 border-b border-gray-100">
+          <Mail size={14} />
+          お問い合わせ（{stats.contactMessages.length}件）
+        </div>
+        {stats.contactMessages.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">お問い合わせはありません</p>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {stats.contactMessages.map(m => (
+              <div key={m.id} className="p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{m.category}</span>
+                  <span className="text-[10px] text-gray-400">{new Date(m.created_at).toLocaleDateString('ja-JP')}</span>
+                </div>
+                <p className="text-xs text-gray-500 mb-1">{m.email}</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{m.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Check, LogOut } from 'lucide-react';
+import { Save, Check, LogOut, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { SUPPORTED_LANGUAGES } from '@/lib/deepl';
 import { createClient } from '@/lib/supabase';
 
@@ -101,6 +102,15 @@ export default function SettingsPage() {
             <><Save size={18} /> 保存する</>
           )}
         </button>
+
+        {/* お問い合わせ */}
+        <Link
+          href="/contact"
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 font-medium bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+        >
+          <Mail size={16} className="text-gray-400" />
+          お問い合わせ
+        </Link>
 
         {/* アプリ情報 */}
         <div className="text-center text-xs text-gray-400 mt-2">

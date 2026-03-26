@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     { data: cardsByUser },
     { data: sessionsByUser },
     { data: lastSessionByUser },
+    { data: contactMessages },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from('translations').select('*', { count: 'exact', head: true }),
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
     admin.from('cards').select('user_id'),
     admin.from('study_records').select('user_id'),
     admin.from('study_records').select('user_id, reviewed_at').order('reviewed_at', { ascending: false }),
+    admin.from('contact_messages').select('*').order('created_at', { ascending: false }),
   ]);
 
   const users = usersData?.users ?? [];
@@ -107,5 +109,6 @@ export async function GET(request: NextRequest) {
     sessions: { total: totalSessions ?? 0 },
     dailyActiveUsers,
     userList,
+    contactMessages: contactMessages ?? [],
   });
 }
