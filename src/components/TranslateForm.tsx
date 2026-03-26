@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { ArrowLeftRight, Copy, Check, Loader2, Mic, MicOff, Tag } from 'lucide-react';
+import { ArrowLeftRight, Copy, Check, Loader2, Mic, MicOff, Tag, Volume2, VolumeX } from 'lucide-react';
 import { SUPPORTED_LANGUAGES, getLangName } from '@/lib/deepl';
 import { saveTranslation, saveCard } from '@/lib/storage';
 import { createNewCard } from '@/lib/spaced-repetition';
@@ -55,6 +55,7 @@ export default function TranslateForm() {
   const [copied, setCopied] = useState(false);
   const [added, setAdded] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
 
   const handleTranslate = useCallback(async () => {
@@ -113,6 +114,23 @@ export default function TranslateForm() {
     setTimeout(() => setCopied(false), 2000);
   }, [result]);
 
+  const handleSpeak = useCallback(() => {
+    if (!result) return;
+    const synth = window.speechSynthesis;
+    if (isSpeaking) {
+      synth.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(result.translatedText);
+    utter.lang = toLang(result.targetLang);
+    utter.onend = () => setIsSpeaking(false);
+    utter.onerror = () => setIsSpeaking(false);
+    synth.cancel();
+    synth.speak(utter);
+    setIsSpeaking(true);
+  }, [result, isSpeaking]);
+
   const handleAddToStudy = useCallback(async () => {
     if (!result) return;
     const card = createNewCard(result);
@@ -165,6 +183,7 @@ export default function TranslateForm() {
       const transcript = e.results[0][0].transcript;
       setSourceText(prev => prev ? `${prev} ${transcript}` : transcript);
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (e: any) => {
       setIsListening(false);
       recognitionRef.current = null;
@@ -288,13 +307,25 @@ export default function TranslateForm() {
             <span className="text-xs text-gray-500 font-medium">
               {getLangName(result.sourceLang)} → {getLangName(result.targetLang)}
             </span>
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
-            >
-              {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-              {copied ? 'コピー済み' : 'コピー'}
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleSpeak}
+                title="発音を聞く"
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                  isSpeaking ? 'text-blue-600 hover:text-blue-800' : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                {isSpeaking ? '停止' : '発音'}
+              </button>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
+              >
+                {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                {copied ? 'コピー済み' : 'コピー'}
+              </button>
+            </div>
           </div>
           <div className="px-4 py-4">
             <p className="text-base leading-relaxed whitespace-pre-wrap text-gray-900">{result.translatedText}</p>
