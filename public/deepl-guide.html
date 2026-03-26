@@ -402,6 +402,17 @@
 </head>
 <body>
 
+<!-- 戻るボタン -->
+<div style="position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(255,255,255,0.9); backdrop-filter:blur(8px); border-bottom:1px solid #e2e8f0; padding: env(safe-area-inset-top) 0 0;">
+  <div style="max-width:680px; margin:0 auto; padding:10px 16px;">
+    <a href="/" onclick="history.length>1 ? (history.back(), false) : true" style="display:inline-flex; align-items:center; gap:6px; color:#2563eb; font-size:15px; font-weight:600; text-decoration:none;">
+      ← 設定に戻る
+    </a>
+  </div>
+</div>
+<!-- 戻るボタン分の余白 -->
+<div style="height:48px;"></div>
+
 <!-- Hero -->
 <div class="hero">
   <div class="hero-badge">📖 初心者向けガイド</div>
