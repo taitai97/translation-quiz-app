@@ -7,12 +7,13 @@ import { getCards, saveCard, saveStudyRecord } from '@/lib/storage';
 import { calculateNextReview } from '@/lib/spaced-repetition';
 import type { CardItem, Rating } from '@/types';
 
-const RULES = [
-  { label: 'もう一度', color: 'bg-red-100 text-red-700', desc: '次のカードの後にすぐ再出題（最優先）' },
-  { label: '難しい', color: 'bg-orange-100 text-orange-700', desc: '3枚後にもう一度出題' },
-  { label: '覚えた', color: 'bg-green-100 text-green-700', desc: '2日後に復習' },
-  { label: '完璧', color: 'bg-blue-100 text-blue-700', desc: '2週間後に復習' },
-] as const;
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function sortByDue(cards: CardItem[]): CardItem[] {
+  return [...cards].sort((a, b) => a.nextReviewAt - b.nextReviewAt);
+}
 
 function RulesModal({ onClose }: { onClose: () => void }) {
   return (
@@ -24,36 +25,43 @@ function RulesModal({ onClose }: { onClose: () => void }) {
         className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-gray-800">復習ルール</h2>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-bold text-gray-800">使い方</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={20} />
           </button>
         </div>
-        <div className="flex flex-col gap-3">
-          {RULES.map(r => (
-            <div key={r.label} className="flex items-center gap-3">
-              <span className={`text-xs font-medium px-3 py-1 rounded-lg shrink-0 ${r.color}`}>
-                {r.label}
-              </span>
-              <span className="text-sm text-gray-600">{r.desc}</span>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">👆</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">カードをタップ</p>
+              <p className="text-sm text-gray-500">翻訳を表示／元の文に戻す</p>
             </div>
-          ))}
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">👈</span>
+            <div>
+              <p className="text-sm font-semibold text-red-600">左スワイプ = もう一度</p>
+              <p className="text-sm text-gray-500">すぐにまた出題される</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">👉</span>
+            <div>
+              <p className="text-sm font-semibold text-green-600">右スワイプ = 覚えた</p>
+              <p className="text-sm text-gray-500">2日後に復習</p>
+            </div>
+          </div>
         </div>
-        <p className="mt-4 text-xs text-gray-400 leading-relaxed">
-          学習リストのカードは無限にループします。「覚えた」「完璧」で全カードが終わると、また最初から出題されます。
+
+        <p className="mt-5 text-xs text-gray-400 leading-relaxed border-t pt-4">
+          「覚えた」で全カードが消えると、また最初からループします。学習リストのカードを無限に練習できます。
         </p>
       </div>
     </div>
   );
-}
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function sortByDue(cards: CardItem[]): CardItem[] {
-  return [...cards].sort((a, b) => a.nextReviewAt - b.nextReviewAt);
 }
 
 export default function QuizPage() {
@@ -90,12 +98,10 @@ export default function QuizPage() {
       const rest = prev.slice(1);
 
       if (rating === 'again') {
-        // 最優先：先頭に戻す
         return [updatedCard, ...rest];
       }
 
       if (rating === 'hard') {
-        // すぐに出す：3枚後に挿入
         const insertAt = Math.min(3, rest.length);
         return [
           ...rest.slice(0, insertAt),
@@ -106,7 +112,6 @@ export default function QuizPage() {
 
       // good / easy: キューから除外。空になったら全カード再ロード
       if (rest.length === 0) {
-        // 非同期でリロード
         getCards().then(all => {
           setQueue(sortByDue(all));
         });
@@ -149,7 +154,7 @@ export default function QuizPage() {
           <button
             onClick={() => setShowRules(true)}
             className="text-gray-400 hover:text-blue-500 transition-colors"
-            title="復習ルールを見る"
+            title="使い方を見る"
           >
             <Info size={18} />
           </button>
@@ -160,7 +165,7 @@ export default function QuizPage() {
         </div>
       </div>
 
-      {/* 進捗バー（キュー内の残り枚数） */}
+      {/* 進捗バー */}
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-8">
         <div
           className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
