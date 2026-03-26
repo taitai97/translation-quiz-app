@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Translingo — 翻訳と復習が同時にできるアプリ</title>
+  <meta name="description" content="DeepLで翻訳したものをそのままフラッシュカードで復習。現地で使う言葉を、現地で身につける。" />
+  <meta property="og:title" content="Translingo — 翻訳と復習が同時にできるアプリ" />
+  <meta property="og:description" content="DeepLで翻訳したものをそのままフラッシュカードで復習。現地で使う言葉を、現地で身につける。" />
+  <meta property="og:image" content="https://translation-quiz-app.vercel.app/ogp.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/icon-192.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+    * { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+
+    .brand-gradient {
+      background: linear-gradient(135deg, #7c3aed 0%, #0d9488 100%);
+    }
+    .brand-gradient-text {
+      background: linear-gradient(135deg, #7c3aed 0%, #0d9488 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .phone-frame {
+      border-radius: 36px;
+      box-shadow: 0 40px 80px -10px rgba(0,0,0,0.25), 0 0 0 1.5px #e5e7eb;
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    .phone-notch {
+      width: 90px;
+      height: 22px;
+      background: #111827;
+      border-radius: 0 0 14px 14px;
+      margin: 0 auto;
+    }
+    .swipe-hint {
+      animation: swipe-bob 2.5s ease-in-out infinite;
+    }
+    @keyframes swipe-bob {
+      0%, 100% { transform: translateX(0); opacity: 0.7; }
+      50% { transform: translateX(8px); opacity: 1; }
+    }
+    .swipe-hint-left {
+      animation: swipe-bob-left 2.5s ease-in-out infinite;
+    }
+    @keyframes swipe-bob-left {
+      0%, 100% { transform: translateX(0); opacity: 0.7; }
+      50% { transform: translateX(-8px); opacity: 1; }
+    }
+    .step-line::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 48px;
+      background: linear-gradient(180deg, #7c3aed, #0d9488);
+      opacity: 0.3;
+    }
+    .card-hover {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15);
+    }
+    .nav-item.active {
+      color: #7c3aed;
+    }
+    .nav-item {
+      color: #9ca3af;
+    }
+    .progress-bar-fill {
+      animation: progress-fill 2s ease-out forwards;
+    }
+    @keyframes progress-fill {
+      from { width: 0; }
+      to { width: 60%; }
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+  <!-- ===== HERO ===== -->
+  <section class="relative overflow-hidden bg-white">
+    <!-- 背景グラデーション -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10" style="background: radial-gradient(circle, #7c3aed, transparent)"></div>
+      <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-10" style="background: radial-gradient(circle, #0d9488, transparent)"></div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-6 pt-16 pb-12 relative z-10">
+      <!-- ロゴ -->
+      <div class="flex items-center gap-3 mb-14">
+        <img src="/icon-192.png" alt="Translingo" class="w-10 h-10 rounded-xl" />
+        <span class="text-xl font-bold text-gray-800">Translingo</span>
+      </div>
+
+      <div class="flex flex-col lg:flex-row items-center gap-12">
+        <!-- テキスト -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+            <span class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+            無料で使える・ログイン不要
+          </div>
+          <h1 class="text-4xl lg:text-5xl font-black text-gray-900 leading-tight mb-5">
+            翻訳したら、<br />
+            <span class="brand-gradient-text">そのまま復習へ。</span>
+          </h1>
+          <p class="text-lg text-gray-500 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
+            DeepLで翻訳したフレーズを、スワイプするだけで記憶に定着。<br />
+            現地で使った言葉を、現地で覚える。
+          </p>
+          <a
+            href="https://translation-quiz-app.vercel.app"
+            target="_blank"
+            class="inline-flex items-center gap-3 brand-gradient text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 transition-opacity"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+            無料で使ってみる
+          </a>
+          <p class="mt-4 text-sm text-gray-400">ブラウザで今すぐ使える・アプリインストール不要</p>
+        </div>
+
+        <!-- ヒーローモックアップ -->
+        <div class="flex-shrink-0 relative">
+          <div class="phone-frame w-64 bg-gray-50" style="height: 520px;">
+            <!-- ノッチ -->
+            <div class="pt-3 px-4">
+              <div class="phone-notch"></div>
+            </div>
+            <!-- 画面コンテンツ -->
+            <div class="px-4 pt-4 pb-3">
+              <h2 class="text-lg font-bold text-gray-800 mb-3">翻訳</h2>
+              <!-- 入力 -->
+              <div class="bg-white rounded-xl border border-gray-200 p-3 mb-2 shadow-sm">
+                <div class="text-xs text-gray-400 mb-1.5 flex items-center gap-1">
+                  <span class="w-4 h-4 bg-red-500 rounded text-white text-[9px] flex items-center justify-center font-bold">JP</span>
+                  日本語
+                </div>
+                <p class="text-sm text-gray-800 font-medium">もう少し時間をください</p>
+              </div>
+              <!-- 矢印 -->
+              <div class="flex justify-center my-1.5">
+                <div class="w-7 h-7 brand-gradient rounded-full flex items-center justify-center shadow">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                </div>
+              </div>
+              <!-- 出力 -->
+              <div class="bg-purple-50 rounded-xl border border-purple-100 p-3 mb-3 shadow-sm">
+                <div class="text-xs text-purple-400 mb-1.5 flex items-center gap-1">
+                  <span class="w-4 h-4 bg-blue-600 rounded text-white text-[9px] flex items-center justify-center font-bold">EN</span>
+                  英語
+                </div>
+                <p class="text-sm text-purple-900 font-medium">Give me a little more time</p>
+              </div>
+              <!-- ボタン -->
+              <button class="w-full brand-gradient text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/></svg>
+                学習リストへ追加
+              </button>
+              <!-- ヒント -->
+              <p class="text-center text-[10px] text-gray-400 mt-2">追加するとフラッシュカードで復習できます</p>
+            </div>
+            <!-- ボトムナビ -->
+            <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around py-2 px-2">
+              <div class="nav-item active flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6 6-6"/></svg>
+                <span class="text-[9px] font-medium">翻訳</span>
+              </div>
+              <div class="nav-item flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+                <span class="text-[9px]">カード</span>
+              </div>
+              <div class="nav-item flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-[9px]">履歴</span>
+              </div>
+            </div>
+          </div>
+          <!-- 装飾 -->
+          <div class="absolute -top-3 -right-3 w-14 h-14 brand-gradient rounded-2xl opacity-20 rotate-12"></div>
+          <div class="absolute -bottom-3 -left-3 w-10 h-10 bg-teal-400 rounded-xl opacity-20 -rotate-6"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROBLEM ===== -->
+  <section class="bg-gray-50 py-20 fade-in">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <p class="text-sm font-semibold text-purple-600 uppercase tracking-widest mb-4">こんな経験ありませんか？</p>
+      <h2 class="text-3xl font-black text-gray-900 mb-12">翻訳した言葉、<br class="sm:hidden" />また翻訳してませんか。</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-6 shadow-sm text-left card-hover">
+          <div class="text-3xl mb-3">🤔</div>
+          <p class="font-bold text-gray-800 mb-1">同じ表現を何度も調べる</p>
+          <p class="text-sm text-gray-500">「あれ、これ前も調べたな」を繰り返す日々</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm text-left card-hover">
+          <div class="text-3xl mb-3">📋</div>
+          <p class="font-bold text-gray-800 mb-1">メモしても見返さない</p>
+          <p class="text-sm text-gray-500">単語帳を作るだけで満足してしまう</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm text-left card-hover">
+          <div class="text-3xl mb-3">⏱</div>
+          <p class="font-bold text-gray-800 mb-1">復習の時間が取れない</p>
+          <p class="text-sm text-gray-500">別アプリを開くのが面倒でそのまま忘れる</p>
+        </div>
+      </div>
+
+      <div class="mt-12 inline-flex items-center gap-3">
+        <div class="h-px w-12 bg-gray-300"></div>
+        <p class="text-gray-500 font-medium">Translingoはその摩擦をなくします</p>
+        <div class="h-px w-12 bg-gray-300"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <section class="py-24 fade-in">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-purple-600 uppercase tracking-widest mb-3">使い方</p>
+        <h2 class="text-3xl font-black text-gray-900">たった3ステップ</h2>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="flex flex-col lg:flex-row items-center gap-12 mb-24">
+        <!-- モックアップ -->
+        <div class="flex-shrink-0">
+          <div class="phone-frame w-60 bg-gray-50" style="height: 480px;">
+            <div class="pt-3 px-4">
+              <div class="phone-notch"></div>
+            </div>
+            <div class="px-4 pt-4">
+              <h2 class="text-base font-bold text-gray-800 mb-3">翻訳</h2>
+              <!-- 言語セレクター -->
+              <div class="flex items-center gap-2 mb-3">
+                <div class="flex-1 bg-white rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 flex items-center gap-1.5">
+                  <span class="w-4 h-4 bg-red-500 rounded text-white text-[9px] flex items-center justify-center font-bold">JP</span>
+                  日本語
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4m4 4H4"/></svg>
+                <div class="flex-1 bg-white rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700 flex items-center gap-1.5">
+                  <span class="w-4 h-4 bg-blue-600 rounded text-white text-[9px] flex items-center justify-center font-bold">EN</span>
+                  英語
+                </div>
+              </div>
+              <!-- 入力テキストエリア -->
+              <div class="bg-white rounded-xl border-2 border-purple-300 p-3 mb-2 shadow-sm relative">
+                <p class="text-sm text-gray-800">ここで少し待ってもらえますか？</p>
+                <div class="absolute bottom-2 right-2 w-1 h-4 bg-purple-500 animate-pulse rounded-full"></div>
+              </div>
+              <!-- 翻訳ボタン -->
+              <button class="w-full bg-gray-800 text-white text-xs font-bold py-2.5 rounded-xl mb-2">
+                翻訳する
+              </button>
+              <!-- 結果 -->
+              <div class="bg-purple-50 rounded-xl border border-purple-100 p-3">
+                <p class="text-xs text-purple-400 mb-1">翻訳結果</p>
+                <p class="text-sm text-purple-900 font-medium">Could you wait here for a moment?</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 説明 -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center justify-center w-12 h-12 brand-gradient rounded-2xl text-white font-black text-xl mb-4 shadow-md">1</div>
+          <h3 class="text-2xl font-black text-gray-900 mb-3">翻訳する</h3>
+          <p class="text-gray-500 leading-relaxed mb-4">
+            使いたいフレーズや単語をDeepLで翻訳。日→英、英→日など、
+            よく使う言語ペアをデフォルト設定できます。
+          </p>
+          <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
+            <span class="bg-purple-50 text-purple-700 text-sm px-3 py-1 rounded-full font-medium">🌐 DeepL翻訳</span>
+            <span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium">🔄 多言語対応</span>
+            <span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium">⚡ 即時翻訳</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flex flex-col lg:flex-row-reverse items-center gap-12 mb-24">
+        <!-- モックアップ -->
+        <div class="flex-shrink-0">
+          <div class="phone-frame w-60 bg-gray-50" style="height: 480px;">
+            <div class="pt-3 px-4">
+              <div class="phone-notch"></div>
+            </div>
+            <div class="px-4 pt-4">
+              <h2 class="text-base font-bold text-gray-800 mb-3">翻訳</h2>
+              <!-- 翻訳結果 -->
+              <div class="bg-white rounded-xl border border-gray-200 p-3 mb-2 shadow-sm">
+                <p class="text-xs text-gray-400 mb-1">原文</p>
+                <p class="text-sm text-gray-800">ここで少し待ってもらえますか？</p>
+              </div>
+              <div class="bg-purple-50 rounded-xl border border-purple-100 p-3 mb-3 shadow-sm">
+                <p class="text-xs text-purple-400 mb-1">翻訳結果</p>
+                <p class="text-sm text-purple-900 font-medium">Could you wait here for a moment?</p>
+              </div>
+              <!-- 学習リストボタン（強調） -->
+              <div class="relative">
+                <button class="w-full brand-gradient text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+                  学習リストへ追加
+                </button>
+                <!-- 矢印アニメーション -->
+                <div class="absolute -right-8 top-1/2 -translate-y-1/2 swipe-hint text-purple-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+              <!-- 追加済みリスト -->
+              <div class="mt-3 space-y-1.5">
+                <p class="text-xs text-gray-400 font-medium">追加済みカード</p>
+                <div class="bg-white rounded-lg px-3 py-2 border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs font-medium text-gray-700">Give me a little more time</p>
+                    <p class="text-[10px] text-gray-400">もう少し時間をください</p>
+                  </div>
+                  <span class="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">追加済</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 説明 -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center justify-center w-12 h-12 brand-gradient rounded-2xl text-white font-black text-xl mb-4 shadow-md">2</div>
+          <h3 class="text-2xl font-black text-gray-900 mb-3">学習リストへ追加</h3>
+          <p class="text-gray-500 leading-relaxed mb-4">
+            覚えたいフレーズをワンタップで学習リストに追加。
+            翻訳と保存が1画面で完結するので、会話の流れを止めません。
+          </p>
+          <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
+            <span class="bg-purple-50 text-purple-700 text-sm px-3 py-1 rounded-full font-medium">👆 ワンタップ保存</span>
+            <span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium">📱 端末ローカル保存</span>
+            <span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium">🔒 データは外部送信なし</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flex flex-col lg:flex-row items-center gap-12">
+        <!-- モックアップ -->
+        <div class="flex-shrink-0">
+          <div class="phone-frame w-60 bg-gray-50" style="height: 480px; position: relative;">
+            <div class="pt-3 px-4">
+              <div class="phone-notch"></div>
+            </div>
+            <div class="px-4 pt-4 pb-16">
+              <div class="flex items-center justify-between mb-2">
+                <h2 class="text-base font-bold text-gray-800">フラッシュカード</h2>
+                <span class="text-xs font-medium text-purple-600">3 / 8 枚</span>
+              </div>
+              <!-- プログレスバー -->
+              <div class="w-full bg-gray-200 rounded-full h-1.5 mb-5">
+                <div class="bg-gradient-to-r from-purple-500 to-teal-500 h-1.5 rounded-full" style="width: 37%"></div>
+              </div>
+              <!-- カード -->
+              <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5 text-center relative" style="height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                <p class="text-xs text-gray-400 mb-2">日本語</p>
+                <p class="text-lg font-bold text-gray-800 mb-3">もう少し時間をください</p>
+                <div class="w-8 h-0.5 bg-gray-200 mx-auto mb-3"></div>
+                <p class="text-xs text-gray-400">タップして翻訳を表示</p>
+                <!-- スワイプヒント -->
+                <div class="absolute -left-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 swipe-hint-left">
+                  <div class="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  </div>
+                </div>
+                <div class="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 swipe-hint">
+                  <div class="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </div>
+                </div>
+              </div>
+              <!-- ヒント -->
+              <div class="flex justify-between mt-3 px-1">
+                <div class="flex items-center gap-1">
+                  <div class="w-5 h-5 bg-red-50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  </div>
+                  <span class="text-[10px] text-red-400 font-medium">覚えてない</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-green-500 font-medium">覚えた</span>
+                  <div class="w-5 h-5 bg-green-50 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- ボトムナビ -->
+            <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around py-2 px-2">
+              <div class="nav-item flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6 6-6"/></svg>
+                <span class="text-[9px]">翻訳</span>
+              </div>
+              <div class="nav-item active flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+                <span class="text-[9px] font-medium">カード</span>
+              </div>
+              <div class="nav-item flex flex-col items-center gap-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-[9px]">履歴</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 説明 -->
+        <div class="flex-1 text-center lg:text-left">
+          <div class="inline-flex items-center justify-center w-12 h-12 brand-gradient rounded-2xl text-white font-black text-xl mb-4 shadow-md">3</div>
+          <h3 class="text-2xl font-black text-gray-900 mb-3">スワイプで復習</h3>
+          <p class="text-gray-500 leading-relaxed mb-4">
+            カードをタップして翻訳を確認。覚えていたら右スワイプ、
+            まだなら左スワイプ。電車の中でもサクッと復習できます。
+          </p>
+          <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
+            <span class="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full font-medium">👉 右: 覚えた</span>
+            <span class="bg-red-50 text-red-600 text-sm px-3 py-1 rounded-full font-medium">👈 左: もう一度</span>
+            <span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium">🧠 間隔反復法</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES ===== -->
+  <section class="bg-gray-50 py-20 fade-in">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <p class="text-sm font-semibold text-purple-600 uppercase tracking-widest mb-3">特徴</p>
+        <h2 class="text-3xl font-black text-gray-900">使う人のために設計した</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">🔁</div>
+          <h3 class="font-bold text-gray-800 mb-2">翻訳→復習がシームレス</h3>
+          <p class="text-sm text-gray-500">アプリを切り替えずに、その場で翻訳→保存→復習まで完結します。</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">🧠</div>
+          <h3 class="font-bold text-gray-800 mb-2">間隔反復法（SM-2）</h3>
+          <p class="text-sm text-gray-500">科学的な記憶定着アルゴリズムで、忘れそうなタイミングに自動で出題します。</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">📱</div>
+          <h3 class="font-bold text-gray-800 mb-2">ホーム画面に追加</h3>
+          <p class="text-sm text-gray-500">PWA対応。App Store不要でホーム画面に追加でき、ネイティブアプリのように使えます。</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">🔒</div>
+          <h3 class="font-bold text-gray-800 mb-2">データはあなたの端末に</h3>
+          <p class="text-sm text-gray-500">学習データはすべてブラウザ内に保存。外部サーバーへの送信はありません。</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">🌐</div>
+          <h3 class="font-bold text-gray-800 mb-2">多言語対応</h3>
+          <p class="text-sm text-gray-500">英語・日本語・中国語・スペイン語など、DeepL対応言語であればどれでも使えます。</p>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm card-hover">
+          <div class="text-3xl mb-3">⚡</div>
+          <h3 class="font-bold text-gray-800 mb-2">ログイン不要・即使える</h3>
+          <p class="text-sm text-gray-500">アカウント登録なし。URLを開いたらすぐ翻訳できます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOR WHO ===== -->
+  <section class="py-20 fade-in">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="text-center mb-14">
+        <p class="text-sm font-semibold text-purple-600 uppercase tracking-widest mb-3">こんな人におすすめ</p>
+        <h2 class="text-3xl font-black text-gray-900">言葉を「使う場所」で<br />覚えたい人へ</h2>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex items-start gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm card-hover">
+          <span class="text-2xl flex-shrink-0">✈️</span>
+          <div>
+            <p class="font-bold text-gray-800">海外在住・駐在中の方</p>
+            <p class="text-sm text-gray-500 mt-0.5">日常の会話や業務で出てくる表現を、その場で翻訳してそのまま復習。現地の言葉が自然と身につきます。</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm card-hover">
+          <span class="text-2xl flex-shrink-0">💼</span>
+          <div>
+            <p class="font-bold text-gray-800">外国語を使う仕事をしている方</p>
+            <p class="text-sm text-gray-500 mt-0.5">会議やメールで使う専門用語・ビジネス表現を効率的に蓄積。毎回調べなくて済むようになります。</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm card-hover">
+          <span class="text-2xl flex-shrink-0">🗣</span>
+          <div>
+            <p class="font-bold text-gray-800">外国語を話す環境がある方</p>
+            <p class="text-sm text-gray-500 mt-0.5">友人・パートナー・職場に外国語を使う場面がある方。実際に使うフレーズを覚えるのが一番効率的。</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm card-hover">
+          <span class="text-2xl flex-shrink-0">📖</span>
+          <div>
+            <p class="font-bold text-gray-800">独学で語学を伸ばしたい方</p>
+            <p class="text-sm text-gray-500 mt-0.5">テキストの決まったフレーズではなく、自分が実際に使いたい表現を中心に学びたい方に。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="brand-gradient py-20 fade-in">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+      <img src="/icon-192.png" alt="Translingo" class="w-16 h-16 rounded-2xl mx-auto mb-6 shadow-xl" />
+      <h2 class="text-3xl font-black text-white mb-4">今日から使ってみる</h2>
+      <p class="text-white/80 text-lg mb-8">
+        ログイン不要・無料。ブラウザで今すぐ使えます。
+      </p>
+      <a
+        href="https://translation-quiz-app.vercel.app"
+        target="_blank"
+        class="inline-flex items-center gap-3 bg-white text-purple-700 font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+        Translingoを開く
+      </a>
+      <p class="mt-4 text-white/60 text-sm">スマホのホーム画面にも追加できます</p>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-gray-900 text-gray-500 py-8">
+    <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <img src="/icon-192.png" alt="Translingo" class="w-6 h-6 rounded-lg opacity-80" />
+        <span class="text-gray-400 font-semibold text-sm">Translingo</span>
+      </div>
+      <p class="text-xs">翻訳と復習が同時にできるアプリ</p>
+    </div>
+  </footer>
+
+  <script>
+    // スクロールアニメーション
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
