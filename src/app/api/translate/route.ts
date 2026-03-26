@@ -8,6 +8,10 @@ export async function POST(request: NextRequest) {
 
   const { text, targetLang, sourceLang } = body;
 
+  if (text.length > 500) {
+    return NextResponse.json({ error: '翻訳テキストは500文字以内にしてください' }, { status: 400 });
+  }
+
   // ユーザーのキー優先、なければサーバーの環境変数にフォールバック
   const apiKey = request.headers.get('x-deepl-api-key') || process.env.DEEPL_API_KEY;
 
