@@ -19,7 +19,9 @@ export default function Navigation({ dueCount = 0 }: NavigationProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       <div className="flex justify-around items-center max-w-lg mx-auto">
         {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href;

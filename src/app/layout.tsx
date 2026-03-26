@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
+    viewportFit: "cover",
   },
 };
 
@@ -37,7 +38,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegistrar />
         <InstallPrompt />
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
           <main className="max-w-lg mx-auto px-4 pt-6">
             {children}
           </main>
