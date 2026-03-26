@@ -40,6 +40,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icon-|manifest\\.json|sw\\.js|ogp\\.png|deepl-guide\\.html).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon-|manifest\\.json|sw\\.js|ogp\\.png|deepl-guide\\.html|privacy|terms).*)',
   ],
 };
