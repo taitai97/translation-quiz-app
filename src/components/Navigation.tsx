@@ -8,7 +8,7 @@ const navItems = [
   { href: '/', icon: Languages, label: '翻訳' },
   { href: '/history', icon: History, label: '履歴' },
   { href: '/studylist', icon: ListChecks, label: '学習リスト' },
-  { href: '/quiz', icon: BookOpen, label: 'クイズ' },
+  { href: '/quiz', icon: BookOpen, label: 'フラッシュカード' },
   { href: '/settings', icon: Settings, label: '設定' },
 ];
 

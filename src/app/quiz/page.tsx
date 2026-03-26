@@ -176,7 +176,7 @@ export default function QuizPage() {
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-gray-800">クイズ</h1>
+          <h1 className="text-2xl font-bold text-gray-800">フラッシュカード</h1>
           <button
             onClick={() => setShowRules(true)}
             className="text-gray-400 hover:text-blue-500 transition-colors"
