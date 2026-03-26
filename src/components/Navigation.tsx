@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Languages, History, BookOpen, Settings } from 'lucide-react';
+import { Languages, History, ListChecks, BookOpen, Settings } from 'lucide-react';
 
 const navItems = [
   { href: '/', icon: Languages, label: '翻訳' },
   { href: '/history', icon: History, label: '履歴' },
+  { href: '/studylist', icon: ListChecks, label: '学習リスト' },
   { href: '/quiz', icon: BookOpen, label: 'クイズ' },
   { href: '/settings', icon: Settings, label: '設定' },
 ];
