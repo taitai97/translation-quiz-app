@@ -34,12 +34,13 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegistrar />
         <InstallPrompt />
-        <div className="min-h-screen bg-gray-50" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}>
+        <div className="min-h-screen bg-gray-50 pb-nav-safe">
           <main className="max-w-lg mx-auto px-4 pt-6">
             {children}
           </main>

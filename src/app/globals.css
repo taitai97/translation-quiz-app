@@ -24,4 +24,11 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pb-nav-safe {
+    /* ナビバー高さ(64px) + iPhoneホームインジケーター分 */
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
 }
