@@ -7,15 +7,15 @@ import { SUPPORTED_LANGUAGES } from '@/lib/deepl';
 import { createClient } from '@/lib/supabase';
 
 export default function SettingsPage() {
-  const [targetLang, setTargetLang] = useState('JA');
-  const [sourceLang, setSourceLang] = useState('AUTO');
+  const [targetLang, setTargetLang] = useState('EN');
+  const [sourceLang, setSourceLang] = useState('JA');
   const [saved, setSaved] = useState(false);
   const [email, setEmail] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    setTargetLang(localStorage.getItem('default_target_lang') ?? 'JA');
-    setSourceLang(localStorage.getItem('default_source_lang') ?? 'AUTO');
+    setTargetLang(localStorage.getItem('default_target_lang') ?? 'EN');
+    setSourceLang(localStorage.getItem('default_source_lang') ?? 'JA');
     const supabase = createClient();
     supabase.auth.getSession().then((res: Awaited<ReturnType<typeof supabase.auth.getSession>>) => {
       const userEmail = res.data.session?.user?.email;
