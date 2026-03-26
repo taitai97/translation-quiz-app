@@ -67,17 +67,17 @@ export default function HistoryList({ translations, onUpdate }: HistoryListProps
               {confirmId === t.id ? (
                 <>
                   <button
+                    onClick={() => setConfirmId(null)}
+                    className="px-2 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  >
+                    キャンセル
+                  </button>
+                  <button
                     onClick={() => handleDelete(t.id)}
                     disabled={deletingId === t.id}
                     className="px-2 py-1 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
                   >
                     削除
-                  </button>
-                  <button
-                    onClick={() => setConfirmId(null)}
-                    className="px-2 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  >
-                    キャンセル
                   </button>
                 </>
               ) : (
