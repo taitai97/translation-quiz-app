@@ -122,7 +122,7 @@ export default function TranslateForm() {
         <select
           value={sourceLang}
           onChange={e => setSourceLang(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="AUTO">自動検出</option>
           {SUPPORTED_LANGUAGES.map(lang => (
@@ -141,7 +141,7 @@ export default function TranslateForm() {
         <select
           value={targetLang}
           onChange={e => setTargetLang(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {SUPPORTED_LANGUAGES.map(lang => (
             <option key={lang.code} value={lang.code}>{lang.name}</option>
