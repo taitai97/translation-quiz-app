@@ -137,8 +137,16 @@ export default function TranslateForm() {
     const w = window as any;
     const SpeechRecognition = w.SpeechRecognition ?? w.webkitSpeechRecognition;
 
+    // iOSのChromeはWeb Speech APIが使えない
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const isChrome = /CriOS/.test(navigator.userAgent);
+    if (isIOS && isChrome) {
+      setError('iPhoneのChromeは音声入力に対応していません。Safariでお試しください。');
+      return;
+    }
+
     if (!SpeechRecognition) {
-      setError('このブラウザは音声入力に対応していません');
+      setError('このブラウザは音声入力に対応していません。Safariをお試しください。');
       return;
     }
 
