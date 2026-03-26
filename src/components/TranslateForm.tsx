@@ -159,7 +159,7 @@ export default function TranslateForm() {
           }}
           placeholder="翻訳するテキストを入力..."
           rows={4}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <span className="absolute bottom-2 right-3 text-xs text-gray-400">
           {sourceText.length}文字
