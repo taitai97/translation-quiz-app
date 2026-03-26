@@ -43,8 +43,8 @@ function RulesModal({ onClose }: { onClose: () => void }) {
           <div className="flex items-start gap-3">
             <span className="text-2xl">👈</span>
             <div>
-              <p className="text-sm font-semibold text-red-600">左スワイプ = もう一度</p>
-              <p className="text-sm text-gray-500">すぐにまた出題される</p>
+              <p className="text-sm font-semibold text-red-600">左スワイプ = 覚えてない</p>
+              <p className="text-sm text-gray-500">1問後にまた出題される</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -86,19 +86,14 @@ export default function QuizPage() {
     const updates = calculateNextReview(card, rating);
     const updatedCard = { ...card, ...updates };
 
-    await saveCard(updatedCard);
-    await saveStudyRecord({
-      id: generateId(),
-      cardId: card.id,
-      rating: rating === 'again' ? 0 : rating === 'hard' ? 2 : rating === 'good' ? 4 : 5,
-      reviewedAt: Date.now(),
-    });
-
+    // UIを即時更新（awaitより先に呼ぶことでカード切替がスムーズになる）
     setQueue(prev => {
       const rest = prev.slice(1);
 
       if (rating === 'again') {
-        return [updatedCard, ...rest];
+        // 1問後に再出題（先頭ではなく2番目に挿入）
+        if (rest.length === 0) return [updatedCard];
+        return [rest[0], updatedCard, ...rest.slice(1)];
       }
 
       if (rating === 'hard') {
@@ -118,6 +113,15 @@ export default function QuizPage() {
         return [];
       }
       return rest;
+    });
+
+    // DB書き込みはUI更新後にバックグラウンドで実行
+    await saveCard(updatedCard);
+    await saveStudyRecord({
+      id: generateId(),
+      cardId: card.id,
+      rating: rating === 'again' ? 0 : rating === 'hard' ? 2 : rating === 'good' ? 4 : 5,
+      reviewedAt: Date.now(),
     });
   }, [queue]);
 
@@ -174,6 +178,7 @@ export default function QuizPage() {
       </div>
 
       <FlashCard
+        key={currentCard.id}
         card={currentCard}
         onRate={handleRate}
         remaining={queue.length - 1}

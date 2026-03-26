@@ -86,12 +86,12 @@ export default function FlashCard({ card, onRate, remaining }: FlashCardProps) {
         className="relative w-full max-w-sm"
         style={{ height: '260px', perspective: '1000px' }}
       >
-        {/* もう一度ラベル */}
+        {/* 覚えてないラベル */}
         <div
           className="absolute inset-0 flex items-center justify-start pl-6 z-10 pointer-events-none rounded-2xl border-4 border-red-400 bg-red-50"
           style={{ opacity: againOpacity }}
         >
-          <span className="text-2xl font-bold text-red-500 rotate-[-15deg]">もう一度</span>
+          <span className="text-2xl font-bold text-red-500 rotate-[-15deg]">覚えてない</span>
         </div>
 
         {/* 覚えたラベル */}
@@ -164,7 +164,7 @@ export default function FlashCard({ card, onRate, remaining }: FlashCardProps) {
       {/* スワイプヒント */}
       {isFlipped ? (
         <div className="flex justify-between w-full max-w-sm px-2 text-sm font-medium">
-          <span className="text-red-400">← もう一度</span>
+          <span className="text-red-400">← 覚えてない</span>
           <span className="text-green-500">覚えた →</span>
         </div>
       ) : (

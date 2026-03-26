@@ -37,7 +37,12 @@ function toLang(code: string): string {
 
 export default function TranslateForm() {
   const [sourceText, setSourceText] = useState('');
-  const [sourceLang, setSourceLang] = useState('AUTO');
+  const [sourceLang, setSourceLang] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('default_source_lang') ?? 'AUTO';
+    }
+    return 'AUTO';
+  });
   const [targetLang, setTargetLang] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('default_target_lang') ?? 'JA';
