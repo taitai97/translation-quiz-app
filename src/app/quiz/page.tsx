@@ -112,31 +112,25 @@ export default function QuizPage() {
     const updatedCard = { ...card, ...updates };
 
     // UIを即時更新（awaitより先に呼ぶことでカード切替がスムーズになる）
-    setQueue(prev => {
-      const rest = prev.slice(1);
+    // ※ setQueue updater内で他のsetStateを呼ぶと副作用になるため、先にキューを計算する
+    const rest = queue.slice(1);
+    let newQueue: CardItem[];
 
-      if (rating === 'again') {
-        // 1問後に再出題（先頭ではなく2番目に挿入）
-        if (rest.length === 0) return [updatedCard];
-        return [rest[0], updatedCard, ...rest.slice(1)];
-      }
+    if (rating === 'again') {
+      newQueue = rest.length === 0 ? [updatedCard] : [rest[0], updatedCard, ...rest.slice(1)];
+    } else if (rating === 'hard') {
+      const insertAt = Math.min(3, rest.length);
+      newQueue = [...rest.slice(0, insertAt), updatedCard, ...rest.slice(insertAt)];
+    } else {
+      // good / easy: キューから除外
+      newQueue = rest;
+    }
 
-      if (rating === 'hard') {
-        const insertAt = Math.min(3, rest.length);
-        return [
-          ...rest.slice(0, insertAt),
-          updatedCard,
-          ...rest.slice(insertAt),
-        ];
-      }
+    setQueue(newQueue);
 
-      // good / easy: キューから除外。空になったら完了ポップアップ
-      if (rest.length === 0) {
-        setShowCompletion(true);
-        return [];
-      }
-      return rest;
-    });
+    if ((rating === 'good' || rating === 'easy') && rest.length === 0) {
+      setShowCompletion(true);
+    }
 
     // DB書き込みはUI更新後にバックグラウンドで実行
     await saveCard(updatedCard);
