@@ -11,10 +11,6 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function sortByDue(cards: CardItem[]): CardItem[] {
-  return [...cards].sort((a, b) => a.nextReviewAt - b.nextReviewAt);
-}
-
 function RulesModal({ onClose }: { onClose: () => void }) {
   return (
     <div
@@ -44,20 +40,20 @@ function RulesModal({ onClose }: { onClose: () => void }) {
             <span className="text-2xl">👈</span>
             <div>
               <p className="text-sm font-semibold text-red-600">左スワイプ = 覚えてない</p>
-              <p className="text-sm text-gray-500">1問後にまた出題される</p>
+              <p className="text-sm text-gray-500">他の問題が全部終わった後にまた出題される</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <span className="text-2xl">👉</span>
             <div>
               <p className="text-sm font-semibold text-green-600">右スワイプ = 覚えた</p>
-              <p className="text-sm text-gray-500">2日後に復習</p>
+              <p className="text-sm text-gray-500">このセッションでは出題されない</p>
             </div>
           </div>
         </div>
 
         <p className="mt-5 text-xs text-gray-400 leading-relaxed border-t pt-4">
-          「覚えた」で全カードが消えると、また最初からループします。学習リストのカードを無限に練習できます。
+          全カードを「覚えた」にするとクリアです。「覚えてない」カードはループし続けます。
         </p>
       </div>
     </div>
@@ -84,6 +80,7 @@ function CompletionModal({ onRestart }: { onRestart: () => void }) {
 
 export default function QuizPage() {
   const [queue, setQueue] = useState<CardItem[]>([]);
+  const [clearedCount, setClearedCount] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -91,8 +88,9 @@ export default function QuizPage() {
 
   const load = useCallback(async () => {
     const cards = await getCards();
-    setQueue(sortByDue(cards));
+    setQueue(cards);
     setSessionTotal(cards.length);
+    setClearedCount(0);
     setIsLoaded(true);
   }, []);
 
@@ -110,44 +108,37 @@ export default function QuizPage() {
     const card = queue[0];
     if (!card) return;
 
-    const updates = calculateNextReview(card, rating);
-    const updatedCard = { ...card, ...updates };
-
-    // UIを即時更新（awaitより先に呼ぶことでカード切替がスムーズになる）
-    // ※ setQueue updater内で他のsetStateを呼ぶと副作用になるため、先にキューを計算する
     const rest = queue.slice(1);
-    let newQueue: CardItem[];
 
     if (rating === 'again') {
-      newQueue = rest.length === 0 ? [updatedCard] : [rest[0], updatedCard, ...rest.slice(1)];
-    } else if (rating === 'hard') {
-      const insertAt = Math.min(3, rest.length);
-      newQueue = [...rest.slice(0, insertAt), updatedCard, ...rest.slice(insertAt)];
+      // 覚えてない: キューの末尾へ移動
+      setQueue([...rest, card]);
     } else {
-      // good / easy: キューから除外
-      newQueue = rest;
+      // 覚えた: キューから除外、進捗を進める
+      setClearedCount(prev => prev + 1);
+      setQueue(rest);
+      if (rest.length === 0) {
+        setShowCompletion(true);
+      }
     }
 
-    setQueue(newQueue);
-
-    if ((rating === 'good' || rating === 'easy') && rest.length === 0) {
-      setShowCompletion(true);
-    }
-
-    // DB書き込みはUI更新後にバックグラウンドで実行
+    // DB書き込みはバックグラウンドで
+    const updates = calculateNextReview(card, rating);
+    const updatedCard = { ...card, ...updates };
     await saveCard(updatedCard);
     await saveStudyRecord({
       id: generateId(),
       cardId: card.id,
-      rating: rating === 'again' ? 0 : rating === 'hard' ? 2 : rating === 'good' ? 4 : 5,
+      rating: rating === 'again' ? 0 : 4,
       reviewedAt: Date.now(),
     });
   }, [queue]);
 
   const handleRestart = useCallback(async () => {
     const all = await getCards();
-    setQueue(sortByDue(all));
+    setQueue(all);
     setSessionTotal(all.length);
+    setClearedCount(0);
     setShowCompletion(false);
   }, []);
 
@@ -176,8 +167,7 @@ export default function QuizPage() {
   }
 
   const currentCard = queue[0];
-  const answered = sessionTotal - queue.length;
-  const progress = sessionTotal > 0 ? (answered / sessionTotal) * 100 : 0;
+  const progress = sessionTotal > 0 ? (clearedCount / sessionTotal) * 100 : 0;
 
   return (
     <div>
@@ -195,7 +185,7 @@ export default function QuizPage() {
           </button>
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-blue-600">{answered} / {sessionTotal} 枚</p>
+          <p className="text-sm font-medium text-blue-600">{clearedCount} / {sessionTotal} 枚</p>
         </div>
       </div>
 
