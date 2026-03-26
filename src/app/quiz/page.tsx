@@ -12,6 +12,7 @@ function generateId(): string {
 
 export default function QuizPage() {
   const [dueCards, setDueCards] = useState<CardItem[]>([]);
+  const [sessionCards, setSessionCards] = useState<CardItem[]>([]); // セッション全カードを保持
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,14 +20,23 @@ export default function QuizPage() {
 
   const load = useCallback(async () => {
     const cards = await getDueCards();
-    // シャッフル
     const shuffled = [...cards].sort(() => Math.random() - 0.5);
     setDueCards(shuffled);
+    setSessionCards(shuffled);
     setCurrentIndex(0);
     setSessionDone(false);
     setRatedCount(0);
     setIsLoaded(true);
   }, []);
+
+  // セッション完了後にもう一度同じカードで練習する
+  const replay = useCallback(() => {
+    const shuffled = [...sessionCards].sort(() => Math.random() - 0.5);
+    setDueCards(shuffled);
+    setCurrentIndex(0);
+    setSessionDone(false);
+    setRatedCount(0);
+  }, [sessionCards]);
 
   useEffect(() => {
     load();
@@ -84,12 +94,20 @@ export default function QuizPage() {
         <div className="text-5xl">✅</div>
         <h2 className="text-xl font-bold text-gray-800">セッション完了！</h2>
         <p className="text-gray-500 text-sm">{ratedCount}枚のカードを復習しました</p>
-        <button
-          onClick={load}
-          className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700"
-        >
-          もう一度確認する
-        </button>
+        <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
+          <button
+            onClick={replay}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700"
+          >
+            もう一度練習する
+          </button>
+          <button
+            onClick={load}
+            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200"
+          >
+            新しい復習カードを読み込む
+          </button>
+        </div>
       </div>
     );
   }
