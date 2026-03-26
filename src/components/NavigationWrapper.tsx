@@ -5,6 +5,7 @@ import Navigation from './Navigation';
 
 export default function NavigationWrapper() {
   const pathname = usePathname();
-  if (pathname.startsWith('/auth')) return null;
+  const hideNav = ['/auth', '/privacy', '/terms', '/contact'];
+  if (hideNav.some(p => pathname.startsWith(p))) return null;
   return <Navigation />;
 }
