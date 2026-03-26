@@ -20,8 +20,8 @@ export default function Navigation({ dueCount = 0 }: NavigationProps) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-safe" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}>
-      <div className="flex justify-around items-center w-full max-w-lg bg-white rounded-2xl shadow-lg border border-gray-100 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="flex justify-around items-center w-full max-w-lg mx-auto px-2">
         {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href;
           const isQuiz = href === '/quiz';
