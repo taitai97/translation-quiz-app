@@ -1,10 +1,52 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Info, X } from 'lucide-react';
 import FlashCard from '@/components/FlashCard';
 import { getCards, saveCard, saveStudyRecord } from '@/lib/storage';
 import { calculateNextReview } from '@/lib/spaced-repetition';
 import type { CardItem, Rating } from '@/types';
+
+const RULES = [
+  { label: 'もう一度', color: 'bg-red-100 text-red-700', desc: '次のカードの後にすぐ再出題（最優先）' },
+  { label: '難しい', color: 'bg-orange-100 text-orange-700', desc: '3枚後にもう一度出題' },
+  { label: '覚えた', color: 'bg-green-100 text-green-700', desc: '2日後に復習' },
+  { label: '完璧', color: 'bg-blue-100 text-blue-700', desc: '2週間後に復習' },
+] as const;
+
+function RulesModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-gray-800">復習ルール</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="flex flex-col gap-3">
+          {RULES.map(r => (
+            <div key={r.label} className="flex items-center gap-3">
+              <span className={`text-xs font-medium px-3 py-1 rounded-lg shrink-0 ${r.color}`}>
+                {r.label}
+              </span>
+              <span className="text-sm text-gray-600">{r.desc}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-xs text-gray-400 leading-relaxed">
+          学習リストのカードは無限にループします。「覚えた」「完璧」で全カードが終わると、また最初から出題されます。
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -17,6 +59,7 @@ function sortByDue(cards: CardItem[]): CardItem[] {
 export default function QuizPage() {
   const [queue, setQueue] = useState<CardItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const load = useCallback(async () => {
     const cards = await getCards();
@@ -98,8 +141,19 @@ export default function QuizPage() {
 
   return (
     <div>
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">クイズ</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-800">クイズ</h1>
+          <button
+            onClick={() => setShowRules(true)}
+            className="text-gray-400 hover:text-blue-500 transition-colors"
+            title="復習ルールを見る"
+          >
+            <Info size={18} />
+          </button>
+        </div>
         <div className="text-right">
           <p className="text-sm font-medium text-blue-600">{dueCount} 枚 復習中</p>
           <p className="text-xs text-gray-400">全 {queue.length} 枚</p>
