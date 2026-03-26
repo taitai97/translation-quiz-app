@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import NavigationWrapper from "@/components/NavigationWrapper";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased`}>
         <ServiceWorkerRegistrar />
+        <InstallPrompt />
         <div className="min-h-screen bg-gray-50 pb-20">
           <main className="max-w-lg mx-auto px-4 pt-6">
             {children}
