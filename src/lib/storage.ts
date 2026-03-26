@@ -1,102 +1,139 @@
-'use client';
-
-import { openDB, type IDBPDatabase } from 'idb';
+import { createClient } from './supabase';
 import type { Translation, CardItem, StudyRecord } from '@/types';
 
-const DB_NAME = 'translation-quiz-db';
-const DB_VERSION = 1;
-
-let dbPromise: Promise<IDBPDatabase> | null = null;
-
-function getDB(): Promise<IDBPDatabase> {
-  if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        // 翻訳履歴
-        if (!db.objectStoreNames.contains('translations')) {
-          const translationStore = db.createObjectStore('translations', { keyPath: 'id' });
-          translationStore.createIndex('createdAt', 'createdAt');
-          translationStore.createIndex('inStudyList', 'inStudyList');
-        }
-        // フラッシュカード
-        if (!db.objectStoreNames.contains('cards')) {
-          const cardStore = db.createObjectStore('cards', { keyPath: 'id' });
-          cardStore.createIndex('nextReviewAt', 'nextReviewAt');
-        }
-        // 学習記録
-        if (!db.objectStoreNames.contains('studyRecords')) {
-          const recordStore = db.createObjectStore('studyRecords', { keyPath: 'id' });
-          recordStore.createIndex('cardId', 'cardId');
-          recordStore.createIndex('reviewedAt', 'reviewedAt');
-        }
-      },
-    });
-  }
-  return dbPromise;
+async function getUserId(): Promise<string> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error('Not authenticated');
+  return session.user.id;
 }
 
 // ─── Translation CRUD ───────────────────────────────────────────────────────
 
 export async function saveTranslation(translation: Translation): Promise<void> {
-  const db = await getDB();
-  await db.put('translations', translation);
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase.from('translations').upsert({
+    id: translation.id,
+    user_id: userId,
+    source_text: translation.sourceText,
+    translated_text: translation.translatedText,
+    source_lang: translation.sourceLang,
+    target_lang: translation.targetLang,
+    created_at: translation.createdAt,
+    in_study_list: translation.inStudyList,
+  });
 }
 
 export async function getTranslations(): Promise<Translation[]> {
-  const db = await getDB();
-  const all = await db.getAllFromIndex('translations', 'createdAt');
-  return all.reverse(); // 新しい順
-}
-
-export async function getTranslationById(id: string): Promise<Translation | undefined> {
-  const db = await getDB();
-  return db.get('translations', id);
+  const supabase = createClient();
+  const userId = await getUserId();
+  const { data } = await supabase
+    .from('translations')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  return (data ?? []).map(rowToTranslation);
 }
 
 export async function updateTranslationStudyList(id: string, inStudyList: boolean): Promise<void> {
-  const db = await getDB();
-  const translation = await db.get('translations', id);
-  if (translation) {
-    await db.put('translations', { ...translation, inStudyList });
-  }
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase
+    .from('translations')
+    .update({ in_study_list: inStudyList })
+    .eq('id', id)
+    .eq('user_id', userId);
 }
 
 export async function deleteTranslation(id: string): Promise<void> {
-  const db = await getDB();
-  await db.delete('translations', id);
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase.from('translations').delete().eq('id', id).eq('user_id', userId);
 }
 
 // ─── CardItem CRUD ──────────────────────────────────────────────────────────
 
 export async function saveCard(card: CardItem): Promise<void> {
-  const db = await getDB();
-  await db.put('cards', card);
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase.from('cards').upsert({
+    id: card.id,
+    user_id: userId,
+    source_text: card.sourceText,
+    translated_text: card.translatedText,
+    source_lang: card.sourceLang,
+    target_lang: card.targetLang,
+    next_review_at: card.nextReviewAt,
+    interval: card.interval,
+    ease_factor: card.easeFactor,
+    repetitions: card.repetitions,
+    last_reviewed_at: card.lastReviewedAt,
+    created_at: card.nextReviewAt,
+    in_study_list: true,
+  });
 }
 
 export async function getCards(): Promise<CardItem[]> {
-  const db = await getDB();
-  return db.getAll('cards');
-}
-
-export async function getCardById(id: string): Promise<CardItem | undefined> {
-  const db = await getDB();
-  return db.get('cards', id);
+  const supabase = createClient();
+  const userId = await getUserId();
+  const { data } = await supabase
+    .from('cards')
+    .select('*')
+    .eq('user_id', userId);
+  return (data ?? []).map(rowToCard);
 }
 
 export async function getDueCards(): Promise<CardItem[]> {
   const cards = await getCards();
-  const now = Date.now();
-  return cards.filter(c => c.nextReviewAt <= now);
+  return cards.filter(c => c.nextReviewAt <= Date.now());
 }
 
 export async function deleteCard(id: string): Promise<void> {
-  const db = await getDB();
-  await db.delete('cards', id);
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase.from('cards').delete().eq('id', id).eq('user_id', userId);
 }
 
 // ─── StudyRecord ────────────────────────────────────────────────────────────
 
 export async function saveStudyRecord(record: StudyRecord): Promise<void> {
-  const db = await getDB();
-  await db.put('studyRecords', record);
+  const supabase = createClient();
+  const userId = await getUserId();
+  await supabase.from('study_records').upsert({
+    id: record.id,
+    user_id: userId,
+    card_id: record.cardId,
+    rating: record.rating,
+    reviewed_at: record.reviewedAt,
+  });
+}
+
+// ─── Row mappers ─────────────────────────────────────────────────────────────
+
+function rowToTranslation(row: Record<string, unknown>): Translation {
+  return {
+    id: row.id as string,
+    sourceText: row.source_text as string,
+    translatedText: row.translated_text as string,
+    sourceLang: row.source_lang as string,
+    targetLang: row.target_lang as string,
+    createdAt: row.created_at as number,
+    inStudyList: row.in_study_list as boolean,
+  };
+}
+
+function rowToCard(row: Record<string, unknown>): CardItem {
+  return {
+    id: row.id as string,
+    sourceText: row.source_text as string,
+    translatedText: row.translated_text as string,
+    sourceLang: row.source_lang as string,
+    targetLang: row.target_lang as string,
+    nextReviewAt: row.next_review_at as number,
+    interval: row.interval as number,
+    easeFactor: row.ease_factor as number,
+    repetitions: row.repetitions as number,
+    lastReviewedAt: row.last_reviewed_at as number | null,
+  };
 }
