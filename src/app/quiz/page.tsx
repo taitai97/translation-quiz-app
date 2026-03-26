@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Info, X } from 'lucide-react';
 import FlashCard from '@/components/FlashCard';
 import { getCards, saveCard, saveStudyRecord } from '@/lib/storage';
@@ -83,9 +83,13 @@ export default function QuizPage() {
   const [queue, setQueue] = useState<CardItem[]>([]);
   const [clearedCount, setClearedCount] = useState(0);
   const [sessionTotal, setSessionTotal] = useState(0);
+  const [swipeCount, setSwipeCount] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+
+  // 常に最新のhandleRateをFlashCardに渡すためのref
+  const handleRateRef = useRef<(rating: Rating) => void>(() => {});
 
   const load = useCallback(async () => {
     const cards = await getCards();
@@ -111,6 +115,8 @@ export default function QuizPage() {
 
     const rest = queue.slice(1);
 
+    setSwipeCount(prev => prev + 1);
+
     if (rating === 'again') {
       // 覚えてない: キューの末尾へ移動
       setQueue([...rest, card]);
@@ -134,6 +140,9 @@ export default function QuizPage() {
       reviewedAt: Date.now(),
     });
   }, [queue]);
+
+  // refを常に最新のhandleRateに同期
+  handleRateRef.current = handleRate;
 
   const handleRestart = useCallback(async () => {
     const all = await getCards();
@@ -199,9 +208,9 @@ export default function QuizPage() {
       </div>
 
       <FlashCard
-        key={currentCard.id}
+        key={`${currentCard.id}-${swipeCount}`}
         card={currentCard}
-        onRate={handleRate}
+        onRate={(rating) => handleRateRef.current(rating)}
         remaining={queue.length}
       />
     </div>
