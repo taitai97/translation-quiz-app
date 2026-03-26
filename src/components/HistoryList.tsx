@@ -14,6 +14,7 @@ interface HistoryListProps {
 
 export default function HistoryList({ translations, onUpdate }: HistoryListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const toggleStudyList = async (t: Translation) => {
     const next = !t.inStudyList;
@@ -27,11 +28,11 @@ export default function HistoryList({ translations, onUpdate }: HistoryListProps
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('この翻訳を削除しますか？')) return;
     setDeletingId(id);
     await deleteTranslation(id);
     await deleteCard(id);
     setDeletingId(null);
+    setConfirmId(null);
     onUpdate();
   };
 
@@ -63,24 +64,44 @@ export default function HistoryList({ translations, onUpdate }: HistoryListProps
               <p className="text-sm text-gray-600 mt-1 truncate">{t.translatedText}</p>
             </div>
             <div className="flex gap-1 shrink-0">
-              <button
-                onClick={() => toggleStudyList(t)}
-                title={t.inStudyList ? '学習リストから削除' : '学習リストへ追加'}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  t.inStudyList
-                    ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {t.inStudyList ? <Minus size={16} /> : <Plus size={16} />}
-              </button>
-              <button
-                onClick={() => handleDelete(t.id)}
-                title="削除"
-                className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
+              {confirmId === t.id ? (
+                <>
+                  <button
+                    onClick={() => handleDelete(t.id)}
+                    disabled={deletingId === t.id}
+                    className="px-2 py-1 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                  >
+                    削除
+                  </button>
+                  <button
+                    onClick={() => setConfirmId(null)}
+                    className="px-2 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  >
+                    キャンセル
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => toggleStudyList(t)}
+                    title={t.inStudyList ? '学習リストから削除' : '学習リストへ追加'}
+                    className={`p-1.5 rounded-lg transition-colors ${
+                      t.inStudyList
+                        ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                  >
+                    {t.inStudyList ? <Minus size={16} /> : <Plus size={16} />}
+                  </button>
+                  <button
+                    onClick={() => setConfirmId(t.id)}
+                    title="削除"
+                    className="p-1.5 rounded-lg bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </>
+              )}
             </div>
           </div>
           {t.inStudyList && (
