@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  // 認証チェック
   const anonClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -14,7 +13,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // service_role でRLSをバイパスして全データを集計
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -31,6 +29,10 @@ export async function GET(request: NextRequest) {
     { count: totalCards },
     { count: totalSessions },
     { data: dailyData },
+    { data: translationsByUser },
+    { data: cardsByUser },
+    { data: sessionsByUser },
+    { data: lastSessionByUser },
   ] = await Promise.all([
     admin.auth.admin.listUsers({ perPage: 1000 }),
     admin.from('translations').select('*', { count: 'exact', head: true }),
@@ -38,6 +40,10 @@ export async function GET(request: NextRequest) {
     admin.from('cards').select('*', { count: 'exact', head: true }),
     admin.from('study_records').select('*', { count: 'exact', head: true }),
     admin.from('study_records').select('reviewed_at, user_id').gte('reviewed_at', oneWeekAgo),
+    admin.from('translations').select('user_id'),
+    admin.from('cards').select('user_id'),
+    admin.from('study_records').select('user_id'),
+    admin.from('study_records').select('user_id, reviewed_at').order('reviewed_at', { ascending: false }),
   ]);
 
   const users = usersData?.users ?? [];
@@ -61,12 +67,38 @@ export async function GET(request: NextRequest) {
     count: set.size,
   }));
 
-  // プロバイダー別ユーザー数
+  // プロバイダー別
   const providerCount: Record<string, number> = {};
   for (const u of users) {
     const provider = u.app_metadata?.provider ?? 'unknown';
     providerCount[provider] = (providerCount[provider] ?? 0) + 1;
   }
+
+  // ユーザーごとの集計
+  const countByUser = (rows: { user_id: string }[] | null) => {
+    const map: Record<string, number> = {};
+    for (const r of (rows ?? [])) map[r.user_id] = (map[r.user_id] ?? 0) + 1;
+    return map;
+  };
+  const translationCount = countByUser(translationsByUser);
+  const cardCount = countByUser(cardsByUser);
+  const sessionCount = countByUser(sessionsByUser);
+
+  const lastSession: Record<string, number> = {};
+  for (const r of (lastSessionByUser ?? [])) {
+    if (!lastSession[r.user_id]) lastSession[r.user_id] = r.reviewed_at;
+  }
+
+  const userList = users.map(u => ({
+    id: u.id,
+    email: u.email ?? '',
+    provider: u.app_metadata?.provider ?? 'unknown',
+    createdAt: u.created_at,
+    translations: translationCount[u.id] ?? 0,
+    cards: cardCount[u.id] ?? 0,
+    sessions: sessionCount[u.id] ?? 0,
+    lastSessionAt: lastSession[u.id] ?? null,
+  })).sort((a, b) => b.sessions - a.sessions);
 
   return NextResponse.json({
     users: { total: totalUsers, thisWeek: weekUsers, byProvider: providerCount },
@@ -74,5 +106,6 @@ export async function GET(request: NextRequest) {
     cards: { total: totalCards ?? 0 },
     sessions: { total: totalSessions ?? 0 },
     dailyActiveUsers,
+    userList,
   });
 }
