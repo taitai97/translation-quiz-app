@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   title: "Translingo",
   description: "翻訳と復習が同時にできるアプリ。",
   manifest: "/manifest.json",
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
