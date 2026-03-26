@@ -8,13 +8,25 @@ import InstallPrompt from "@/components/InstallPrompt";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "翻訳クイズ",
-  description: "翻訳しながら単語を記憶するフラッシュカードアプリ",
+  title: "Translingo",
+  description: "翻訳と復習が同時にできるアプリ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "翻訳クイズ",
+    title: "Translingo",
+  },
+  openGraph: {
+    title: "Translingo",
+    description: "翻訳と復習が同時にできるアプリ。",
+    type: "website",
+    images: [{ url: "/ogp.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Translingo",
+    description: "翻訳と復習が同時にできるアプリ。",
+    images: ["/ogp.png"],
   },
 };
 

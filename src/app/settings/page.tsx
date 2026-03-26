@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
         {/* アプリ情報 */}
         <div className="text-center text-xs text-gray-400 mt-2">
-          <p>翻訳クイズ v1.0.0</p>
+          <p>Translingo v1.0.0</p>
           <p>データはすべてブラウザのローカルストレージに保存されます</p>
         </div>
       </div>

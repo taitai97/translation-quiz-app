@@ -1,7 +1,7 @@
 {
-  "name": "翻訳クイズ",
-  "short_name": "翻訳クイズ",
-  "description": "翻訳しながら単語を記憶するフラッシュカードアプリ",
+  "name": "Translingo",
+  "short_name": "Translingo",
+  "description": "翻訳と復習が同時にできるアプリ。",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",
