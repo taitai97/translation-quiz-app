@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { ArrowLeftRight, Copy, Plus, Check, Loader2 } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { ArrowLeftRight, Copy, Plus, Check, Loader2, Mic, MicOff } from 'lucide-react';
 import { SUPPORTED_LANGUAGES, getLangName } from '@/lib/deepl';
 import { saveTranslation, saveCard } from '@/lib/storage';
 import { createNewCard } from '@/lib/spaced-repetition';
@@ -25,6 +25,16 @@ function getApiKey(): string {
   return localStorage.getItem('deepl_api_key') ?? '';
 }
 
+// 言語コード → SpeechRecognition lang 属性に変換
+function toLang(code: string): string {
+  const map: Record<string, string> = {
+    JA: 'ja-JP', EN: 'en-US', ZH: 'zh-CN', 'ZH-HANT': 'zh-TW',
+    KO: 'ko-KR', FR: 'fr-FR', DE: 'de-DE', ES: 'es-ES',
+    IT: 'it-IT', PT: 'pt-BR', RU: 'ru-RU',
+  };
+  return map[code] ?? 'ja-JP';
+}
+
 export default function TranslateForm() {
   const [sourceText, setSourceText] = useState('');
   const [sourceLang, setSourceLang] = useState('AUTO');
@@ -39,6 +49,8 @@ export default function TranslateForm() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [added, setAdded] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
 
   const handleTranslate = useCallback(async () => {
     if (!sourceText.trim()) return;
@@ -115,6 +127,39 @@ export default function TranslateForm() {
     }
   }, [sourceLang, targetLang, result]);
 
+  const toggleVoice = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SpeechRecognition = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setError('このブラウザは音声入力に対応していません');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = toLang(sourceLang === 'AUTO' ? 'JA' : sourceLang);
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript;
+      setSourceText(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [isListening, sourceLang]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* 言語選択 */}
@@ -130,10 +175,11 @@ export default function TranslateForm() {
           ))}
         </select>
 
+        {/* 入れ替えボタン */}
         <button
           onClick={swapLanguages}
           disabled={sourceLang === 'AUTO'}
-          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           <ArrowLeftRight size={18} />
         </button>
@@ -159,12 +205,28 @@ export default function TranslateForm() {
           }}
           placeholder="翻訳するテキストを入力..."
           rows={4}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        {/* 音声入力ボタン */}
+        <button
+          onClick={toggleVoice}
+          title="音声入力"
+          className={`absolute top-2 right-2 p-2 rounded-lg transition-colors ${
+            isListening
+              ? 'bg-red-500 text-white animate-pulse'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+        >
+          {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+        </button>
         <span className="absolute bottom-2 right-3 text-xs text-gray-400">
           {sourceText.length}文字
         </span>
       </div>
+
+      {isListening && (
+        <p className="text-sm text-red-500 text-center animate-pulse">🎤 話しかけてください...</p>
+      )}
 
       {/* 翻訳ボタン */}
       <button
