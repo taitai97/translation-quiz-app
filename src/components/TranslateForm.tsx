@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { ArrowLeftRight, Copy, Plus, Check, Loader2, Mic, MicOff } from 'lucide-react';
+import { ArrowLeftRight, Copy, Check, Loader2, Mic, MicOff, Tag } from 'lucide-react';
 import { SUPPORTED_LANGUAGES, getLangName } from '@/lib/deepl';
 import { saveTranslation, saveCard } from '@/lib/storage';
 import { createNewCard } from '@/lib/spaced-repetition';
@@ -256,31 +256,19 @@ export default function TranslateForm() {
 
       {/* 翻訳結果 */}
       {result && (
+        <>
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 flex items-center justify-between">
             <span className="text-xs text-gray-500 font-medium">
               {getLangName(result.sourceLang)} → {getLangName(result.targetLang)}
             </span>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
-              >
-                {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-                {copied ? 'コピー済み' : 'コピー'}
-              </button>
-              <button
-                onClick={handleAddToStudy}
-                disabled={added || result.inStudyList}
-                className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-60 disabled:cursor-not-allowed px-2 py-1 rounded"
-              >
-                {added || result.inStudyList ? (
-                  <><Check size={14} /> 追加済み</>
-                ) : (
-                  <><Plus size={14} /> 学習リストへ</>
-                )}
-              </button>
-            </div>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 px-2 py-1 rounded"
+            >
+              {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+              {copied ? 'コピー済み' : 'コピー'}
+            </button>
           </div>
           <div className="px-4 py-4">
             <p className="text-base leading-relaxed whitespace-pre-wrap text-gray-900">{result.translatedText}</p>
@@ -291,6 +279,26 @@ export default function TranslateForm() {
             )}
           </div>
         </div>
+
+        {/* 学習リストへ追加ボタン */}
+        <div className="flex flex-col items-center gap-1.5">
+          <button
+            onClick={handleAddToStudy}
+            disabled={added || result.inStudyList}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-medium text-white text-base transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ background: added || result.inStudyList ? '#9ca3af' : 'linear-gradient(to right, #7c3aed, #0d9488)' }}
+          >
+            {added || result.inStudyList ? (
+              <><Check size={18} /> 追加済み</>
+            ) : (
+              <><Tag size={18} /> 学習リストへ追加</>
+            )}
+          </button>
+          {!added && !result.inStudyList && (
+            <p className="text-xs text-gray-400">追加するとフラッシュカードで復習できます</p>
+          )}
+        </div>
+        </>
       )}
 
     </div>
