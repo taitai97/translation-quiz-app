@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import FlashCard from '@/components/FlashCard';
-import { getDueCards, saveCard, saveStudyRecord } from '@/lib/storage';
+import { getCards, saveCard, saveStudyRecord } from '@/lib/storage';
 import { calculateNextReview } from '@/lib/spaced-repetition';
 import type { CardItem, Rating } from '@/types';
 
@@ -10,40 +10,26 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function sortByDue(cards: CardItem[]): CardItem[] {
+  return [...cards].sort((a, b) => a.nextReviewAt - b.nextReviewAt);
+}
+
 export default function QuizPage() {
-  const [dueCards, setDueCards] = useState<CardItem[]>([]);
-  const [sessionCards, setSessionCards] = useState<CardItem[]>([]); // セッション全カードを保持
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [sessionDone, setSessionDone] = useState(false);
+  const [queue, setQueue] = useState<CardItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [ratedCount, setRatedCount] = useState(0);
 
   const load = useCallback(async () => {
-    const cards = await getDueCards();
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    setDueCards(shuffled);
-    setSessionCards(shuffled);
-    setCurrentIndex(0);
-    setSessionDone(false);
-    setRatedCount(0);
+    const cards = await getCards();
+    setQueue(sortByDue(cards));
     setIsLoaded(true);
   }, []);
-
-  // セッション完了後にもう一度同じカードで練習する
-  const replay = useCallback(() => {
-    const shuffled = [...sessionCards].sort(() => Math.random() - 0.5);
-    setDueCards(shuffled);
-    setCurrentIndex(0);
-    setSessionDone(false);
-    setRatedCount(0);
-  }, [sessionCards]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const handleRate = useCallback(async (rating: Rating) => {
-    const card = dueCards[currentIndex];
+    const card = queue[0];
     if (!card) return;
 
     const updates = calculateNextReview(card, rating);
@@ -57,15 +43,35 @@ export default function QuizPage() {
       reviewedAt: Date.now(),
     });
 
-    const nextIndex = currentIndex + 1;
-    setRatedCount(prev => prev + 1);
+    setQueue(prev => {
+      const rest = prev.slice(1);
 
-    if (nextIndex >= dueCards.length) {
-      setSessionDone(true);
-    } else {
-      setCurrentIndex(nextIndex);
-    }
-  }, [currentIndex, dueCards]);
+      if (rating === 'again') {
+        // 最優先：先頭に戻す
+        return [updatedCard, ...rest];
+      }
+
+      if (rating === 'hard') {
+        // すぐに出す：3枚後に挿入
+        const insertAt = Math.min(3, rest.length);
+        return [
+          ...rest.slice(0, insertAt),
+          updatedCard,
+          ...rest.slice(insertAt),
+        ];
+      }
+
+      // good / easy: キューから除外。空になったら全カード再ロード
+      if (rest.length === 0) {
+        // 非同期でリロード
+        getCards().then(all => {
+          setQueue(sortByDue(all));
+        });
+        return [];
+      }
+      return rest;
+    });
+  }, [queue]);
 
   if (!isLoaded) {
     return (
@@ -75,66 +81,43 @@ export default function QuizPage() {
     );
   }
 
-  if (dueCards.length === 0) {
+  if (queue.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-        <div className="text-5xl">🎉</div>
-        <h2 className="text-xl font-bold text-gray-800">今日の復習は完了です！</h2>
+        <div className="text-5xl">📚</div>
+        <h2 className="text-xl font-bold text-gray-800">学習リストにカードがありません</h2>
         <p className="text-gray-500 text-sm">
-          復習が必要なカードはありません。<br />
-          翻訳したテキストを学習リストに追加しましょう。
+          翻訳画面で「学習リストへ」を押してカードを追加しましょう。
         </p>
       </div>
     );
   }
 
-  if (sessionDone) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-        <div className="text-5xl">✅</div>
-        <h2 className="text-xl font-bold text-gray-800">セッション完了！</h2>
-        <p className="text-gray-500 text-sm">{ratedCount}枚のカードを復習しました</p>
-        <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
-          <button
-            onClick={replay}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700"
-          >
-            もう一度練習する
-          </button>
-          <button
-            onClick={load}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200"
-          >
-            新しい復習カードを読み込む
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentCard = dueCards[currentIndex];
+  const currentCard = queue[0];
+  const dueCount = queue.filter(c => c.nextReviewAt <= Date.now()).length;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-800">クイズ</h1>
-        <span className="text-sm text-gray-500">
-          {currentIndex + 1} / {dueCards.length}
-        </span>
+        <div className="text-right">
+          <p className="text-sm font-medium text-blue-600">{dueCount} 枚 復習中</p>
+          <p className="text-xs text-gray-400">全 {queue.length} 枚</p>
+        </div>
       </div>
 
-      {/* 進捗バー */}
+      {/* 進捗バー（キュー内の残り枚数） */}
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-8">
         <div
           className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-          style={{ width: `${(currentIndex / dueCards.length) * 100}%` }}
+          style={{ width: dueCount > 0 ? `${((queue.length - dueCount) / queue.length) * 100}%` : '100%' }}
         />
       </div>
 
       <FlashCard
         card={currentCard}
         onRate={handleRate}
-        remaining={dueCards.length - currentIndex}
+        remaining={queue.length - 1}
       />
     </div>
   );
