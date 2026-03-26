@@ -293,11 +293,6 @@ export default function TranslateForm() {
         </div>
       )}
 
-      {!getApiKey() && (
-        <p className="text-xs text-amber-600 text-center">
-          ⚠️ DeepL APIキー未設定のためモック翻訳です。設定画面でAPIキーを入力してください。
-        </p>
-      )}
     </div>
   );
 }

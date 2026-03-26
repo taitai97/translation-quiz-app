@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
 
   const { text, targetLang, sourceLang } = body;
 
-  // APIキーはリクエストヘッダーから受け取る（クライアントがlocalStorageから渡す）
-  const apiKey = request.headers.get('x-deepl-api-key');
+  // ユーザーのキー優先、なければサーバーの環境変数にフォールバック
+  const apiKey = request.headers.get('x-deepl-api-key') || process.env.DEEPL_API_KEY;
 
   if (!apiKey) {
-    // モック翻訳（APIキー未設定時）
+    // どちらも未設定の場合のみモック翻訳
     return NextResponse.json({
       translatedText: `[Mock] ${text}`,
       detectedSourceLang: sourceLang || 'AUTO',
