@@ -3,36 +3,48 @@
 import { useEffect, useState } from 'react';
 import { X, Share, Plus, MoreVertical } from 'lucide-react';
 
-type Platform = 'ios' | 'android' | null;
+type Browser =
+  | 'ios-safari'   // iOS Safari → 共有ボタンは画面下
+  | 'ios-chrome'   // iOS Chrome → 共有ボタンは画面上（アドレスバー右）
+  | 'ios-other'    // iOS その他ブラウザ → 共有は上
+  | 'android'      // Android Chrome など → メニュー（⋮）
+  | null;
 
-function detectPlatform(): Platform {
+function detectBrowser(): Browser {
   const ua = navigator.userAgent;
-  if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
-  if (/android/i.test(ua)) return 'android';
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isAndroid = /android/i.test(ua);
+
+  if (isIOS) {
+    if (/CriOS/i.test(ua)) return 'ios-chrome';
+    if (/FxiOS|EdgiOS|OPiOS/i.test(ua)) return 'ios-other';
+    return 'ios-safari';
+  }
+  if (isAndroid) return 'android';
   return null;
 }
 
 function isStandalone(): boolean {
-  return window.matchMedia('(display-mode: standalone)').matches
-    || ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true);
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    ('standalone' in navigator &&
+      (navigator as { standalone?: boolean }).standalone === true)
+  );
 }
 
 export default function InstallPrompt() {
   const [show, setShow] = useState(false);
-  const [platform, setPlatform] = useState<Platform>(null);
+  const [browser, setBrowser] = useState<Browser>(null);
 
   useEffect(() => {
-    // すでにインストール済み or 非対応プラットフォームは表示しない
     if (isStandalone()) return;
-    const p = detectPlatform();
-    if (!p) return;
+    const b = detectBrowser();
+    if (!b) return;
 
-    // 過去に閉じた場合は7日間表示しない
     const dismissed = localStorage.getItem('install_prompt_dismissed');
     if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-    setPlatform(p);
-    // 少し遅らせて表示
+    setBrowser(b);
     const timer = setTimeout(() => setShow(true), 1500);
     return () => clearTimeout(timer);
   }, []);
@@ -42,17 +54,12 @@ export default function InstallPrompt() {
     setShow(false);
   };
 
-  if (!show) return null;
+  if (!show || !browser) return null;
 
   return (
     <>
-      {/* オーバーレイ */}
-      <div
-        className="fixed inset-0 bg-black/40 z-40"
-        onClick={handleDismiss}
-      />
+      <div className="fixed inset-0 bg-black/40 z-40" onClick={handleDismiss} />
 
-      {/* ポップアップ */}
       <div className="fixed bottom-24 left-4 right-4 z-50 max-w-sm mx-auto">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* ヘッダー */}
@@ -68,33 +75,7 @@ export default function InstallPrompt() {
 
           {/* 手順 */}
           <div className="px-5 py-4">
-            {platform === 'ios' ? (
-              <div className="flex flex-col gap-3">
-                <Step num={1} icon={<Share size={18} className="text-blue-600" />}>
-                  画面下の<strong>「共有」ボタン</strong>をタップ
-                  <span className="text-xs text-gray-400 block mt-0.5">（四角から上矢印が出るアイコン）</span>
-                </Step>
-                <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
-                  <strong>「ホーム画面に追加」</strong>を選ぶ
-                </Step>
-                <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">追加</span>}>
-                  右上の<strong>「追加」</strong>をタップして完了
-                </Step>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <Step num={1} icon={<MoreVertical size={18} className="text-blue-600" />}>
-                  ブラウザ右上の<strong>メニュー（⋮）</strong>をタップ
-                </Step>
-                <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
-                  <strong>「ホーム画面に追加」</strong>または<br />
-                  <strong>「アプリをインストール」</strong>を選ぶ
-                </Step>
-                <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">OK</span>}>
-                  <strong>「追加」</strong>をタップして完了
-                </Step>
-              </div>
-            )}
+            <Steps browser={browser} />
           </div>
 
           {/* フッター */}
@@ -107,13 +88,77 @@ export default function InstallPrompt() {
             </button>
           </div>
         </div>
-
-        {/* 吹き出しの三角（下向き） */}
-        <div className="flex justify-center">
-          <div className="w-4 h-4 bg-gray-100 rotate-45 -mt-2 rounded-sm shadow" />
-        </div>
       </div>
     </>
+  );
+}
+
+function Steps({ browser }: { browser: Browser }) {
+  if (browser === 'ios-safari') {
+    return (
+      <div className="flex flex-col gap-3">
+        <Step num={1} icon={<Share size={18} className="text-blue-600" />}>
+          画面<strong>下中央</strong>の<strong>「共有」ボタン</strong>をタップ
+          <span className="text-xs text-gray-400 block mt-0.5">四角から上矢印が出るアイコン</span>
+        </Step>
+        <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
+          メニューをスクロールして<strong>「ホーム画面に追加」</strong>を選ぶ
+        </Step>
+        <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">追加</span>}>
+          右上の<strong>「追加」</strong>をタップして完了
+        </Step>
+      </div>
+    );
+  }
+
+  if (browser === 'ios-chrome') {
+    return (
+      <div className="flex flex-col gap-3">
+        <Step num={1} icon={<Share size={18} className="text-blue-600" />}>
+          画面<strong>右上</strong>（アドレスバー横）の<strong>「共有」ボタン</strong>をタップ
+          <span className="text-xs text-gray-400 block mt-0.5">四角から上矢印が出るアイコン</span>
+        </Step>
+        <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
+          <strong>「ホーム画面に追加」</strong>を選ぶ
+        </Step>
+        <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">追加</span>}>
+          右上の<strong>「追加」</strong>をタップして完了
+        </Step>
+      </div>
+    );
+  }
+
+  if (browser === 'ios-other') {
+    return (
+      <div className="flex flex-col gap-3">
+        <Step num={1} icon={<Share size={18} className="text-blue-600" />}>
+          画面<strong>上部</strong>の<strong>「共有」ボタン</strong>をタップ
+          <span className="text-xs text-gray-400 block mt-0.5">四角から上矢印が出るアイコン</span>
+        </Step>
+        <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
+          <strong>「ホーム画面に追加」</strong>を選ぶ
+        </Step>
+        <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">追加</span>}>
+          <strong>「追加」</strong>をタップして完了
+        </Step>
+      </div>
+    );
+  }
+
+  // android
+  return (
+    <div className="flex flex-col gap-3">
+      <Step num={1} icon={<MoreVertical size={18} className="text-blue-600" />}>
+        ブラウザ<strong>右上のメニュー（⋮）</strong>をタップ
+      </Step>
+      <Step num={2} icon={<Plus size={18} className="text-blue-600" />}>
+        <strong>「ホーム画面に追加」</strong>または
+        <strong>「アプリをインストール」</strong>を選ぶ
+      </Step>
+      <Step num={3} icon={<span className="text-blue-600 font-bold text-sm">OK</span>}>
+        <strong>「追加」</strong>をタップして完了
+      </Step>
+    </div>
   );
 }
 
