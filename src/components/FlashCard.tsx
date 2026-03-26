@@ -43,11 +43,11 @@ export default function FlashCard({ card, onRate, remaining }: FlashCardProps) {
     setDeltaX(dx);
   };
 
-  const onDragEnd = () => {
+  const onDragEnd = (cancelled = false) => {
     if (!isDragging) return;
     setIsDragging(false);
 
-    if (Math.abs(deltaX) >= SWIPE_THRESHOLD) {
+    if (!cancelled && Math.abs(deltaX) >= SWIPE_THRESHOLD) {
       const dir = deltaX > 0 ? 'right' : 'left';
       setFlyOut(dir);
       setTimeout(() => {
@@ -104,14 +104,15 @@ export default function FlashCard({ card, onRate, remaining }: FlashCardProps) {
 
         {/* スワイプ対象カード */}
         <div
-          style={{ ...outerStyle, position: 'absolute', inset: 0 }}
+          style={{ ...outerStyle, position: 'absolute', inset: 0, touchAction: 'none' }}
           onMouseDown={e => onDragStart(e.clientX)}
           onMouseMove={e => onDragMove(e.clientX)}
-          onMouseUp={onDragEnd}
-          onMouseLeave={onDragEnd}
+          onMouseUp={() => onDragEnd()}
+          onMouseLeave={() => onDragEnd(true)}
           onTouchStart={e => onDragStart(e.touches[0].clientX)}
           onTouchMove={e => { e.preventDefault(); onDragMove(e.touches[0].clientX); }}
-          onTouchEnd={onDragEnd}
+          onTouchEnd={() => onDragEnd()}
+          onTouchCancel={() => onDragEnd(true)}
           onClick={handleFlip}
         >
           {/* 3D フリップ内側 */}
