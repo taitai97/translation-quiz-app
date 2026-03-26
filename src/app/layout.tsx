@@ -8,6 +8,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://translation-quiz-app.vercel.app"),
   title: "Translingo",
   description: "翻訳と復習が同時にできるアプリ。",
   manifest: "/manifest.json",
