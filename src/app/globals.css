@@ -28,7 +28,7 @@ body {
     padding-bottom: env(safe-area-inset-bottom);
   }
   .pb-nav-safe {
-    /* ナビバー高さ(64px) + 浮き(12px) + iPhoneホームインジケーター分 */
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    /* ナビバー高さ(64px) + 浮き(20px) + iPhoneホームインジケーター分 */
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
   }
 }
