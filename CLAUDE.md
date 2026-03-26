@@ -15,6 +15,7 @@
 
 ## 地雷マップ（過去の失敗）
 - テキスト入力・結果表示・select要素に明示的な文字色（`text-gray-900`）を指定しないと、環境によって薄く表示される。bg-white と一緒に必ず `text-gray-900` を付けること
+- iOSのSafariでinput/textareaのフォントが16px未満（`text-sm`等）だとタップ時に自動ズームする。必ず `text-base`（16px）以上を使うこと
 
 ## やってはいけないこと
 - IndexedDB直接操作（必ずlib/storage.tsのラッパー経由で）
