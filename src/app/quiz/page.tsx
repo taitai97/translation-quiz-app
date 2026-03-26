@@ -156,6 +156,10 @@ export default function QuizPage() {
     );
   }
 
+  if (showCompletion) {
+    return <CompletionModal onRestart={handleRestart} />;
+  }
+
   if (queue.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
@@ -174,7 +178,6 @@ export default function QuizPage() {
   return (
     <div>
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
-      {showCompletion && <CompletionModal onRestart={handleRestart} />}
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
